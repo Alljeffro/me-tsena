@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "name": "me-tsena",
+  "cleanUrls": true,
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}
