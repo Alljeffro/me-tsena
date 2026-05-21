@@ -1,44 +1,52 @@
-<div class="app-container">
-    <!-- Barre supérieure fixe -->
-    <header class="app-header">
-        <h1 onclick="router.navigate('home')">ME Tsena</h1>
-        <button id="walletBtn" class="wallet-btn">
-            <span class="dot"></span>
-            <span id="walletStatusText">Hifandray / Connexion</span>
-        </button>
-    </header>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ME Tsena</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-    <!-- Zone principale dynamique remplie par le JS -->
-    <main id="appContent" class="app-main">
-        <!-- Le contenu des pages (home, catalog, seller) sera injecté ici -->
-    </main>
+    <div class="app-container">
+        <header class="app-header">
+            <h1 onclick="router.navigate('home')">ME Tsena</h1>
+            <button id="walletBtn" class="wallet-btn">
+                <span class="dot"></span>
+                <span id="walletStatusText">Hifandray / Connexion</span>
+            </button>
+        </header>
 
-    <!-- Barre de navigation basse (Style Application Mobile) -->
-    <nav class="bottom-nav">
-        <button id="navHome" class="nav-item active" onclick="router.navigate('home')">
-            <span class="nav-icon">🏠</span>
-            <span class="nav-text">Fandraisana</span>
-        </button>
-        <button id="navCatalog" class="nav-item" onclick="router.navigate('catalog')">
-            <span class="nav-icon">🛍️</span>
-            <span class="nav-text">Hividy</span>
-        </button>
-        <button id="navSeller" class="nav-item" onclick="router.navigate('seller')">
-            <span class="nav-icon">🏪</span>
-            <span class="nav-text">Hivarotra</span>
-        </button>
-    </nav>
-</div>
+        <main id="appContent" class="app-main">
+            </main>
 
-<!-- Fenêtre Modale Globale (Achat QR, Alertes, Success) -->
-<div id="globalModal" class="modal-overlay hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="modalTitle">Teo be</h3>
-            <button class="modal-close-btn" onclick="ui.closeModal()">✕</button>
-        </div>
-        <div id="modalBody" class="modal-body">
-            <!-- Injecté dynamiquement -->
+        <nav class="bottom-nav">
+            <button id="navHome" class="nav-item active" onclick="router.navigate('home')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Fandraisana</span>
+            </button>
+            <button id="navCatalog" class="nav-item" onclick="router.navigate('catalog')">
+                <span class="nav-icon">🛍️</span>
+                <span class="nav-text">Hividy</span>
+            </button>
+            <button id="navSeller" class="nav-item" onclick="router.navigate('seller')">
+                <span class="nav-icon">🏪</span>
+                <span class="nav-text">Hivarotra</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="globalModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Teo be</h3>
+                <button class="modal-close-btn" onclick="ui.closeModal()">✕</button>
+            </div>
+            <div id="modalBody" class="modal-body">
+                </div>
         </div>
     </div>
-</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
