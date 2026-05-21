@@ -82,7 +82,6 @@ const wallet = {
 // MODULE COMMERCIAL (MARKETPLACE)
 // ==========================================
 const marketplace = {
-    // CORRECTION FINALE : Liens Unchain-Source libres et mondiaux pour éviter les blocages
     initialProducts: [
         { 
             id: 1, 
@@ -114,10 +113,12 @@ const marketplace = {
     ],
 
     getProducts: function() {
-        // Réinitialise de force le stockage local du téléphone pour appliquer les nouvelles images
-        localStorage.removeItem('me_tsena_products');
-        localStorage.setItem('me_tsena_products', JSON.stringify(this.initialProducts));
-        return this.initialProducts;
+        let current = localStorage.getItem('me_tsena_products');
+        if (!current) {
+            localStorage.setItem('me_tsena_products', JSON.stringify(this.initialProducts));
+            return this.initialProducts;
+        }
+        return JSON.parse(current);
     },
 
     getBoutique: function() {
@@ -134,7 +135,6 @@ const marketplace = {
         if (!appState.walletConnected) {
             zone.innerHTML = `
                 <div class="carte centraliser">
-                    <p>Mila mampandray an'i ME Pass ianao raha hivarotra.</p>
                     <p>Veuillez d'abord connecter votre portefeuille ME Pass pour gérer votre espace de vente.</p>
                     <button class="btn-block" onclick="wallet.connect()">🔑 Connecter mon Wallet</button>
                 </div>`;
@@ -180,6 +180,7 @@ const marketplace = {
                     <form id="addProductForm" onsubmit="marketplace.actionAddProduct(event)">
                         <div class="form-group"><label>Anaran'ny entana :</label><input type="text" id="pNom" required></div>
                         <div class="form-group"><label>Mombamomba azy :</label><textarea id="pDesc" rows="2" required></textarea></div>
+                        <div class="form-group"><label>Lien de l'image (URL) :</label><input type="url" id="pImg" placeholder="https://exemple.com/image.jpg"></div>
                         <div class="form-group"><label>Bidim-piainana (MEC) :</label><input type="number" id="pPrix" step="0.1" min="0.1" required></div>
                         <button type="submit" class="btn-block">Hampiditra amin'ny tsena / Publier</button>
                     </form>
@@ -209,15 +210,15 @@ const marketplace = {
     actionAddProduct: function(e) {
         e.preventDefault();
         let products = this.getProducts();
-        const imgInput = document.getElementById('pImg');
-        const img = imgInput ? imgInput.value : null;
+        const imgInput = document.getElementById('pImg').value;
+        const defaultImg = "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80"; // Image cosmétique/beauté neutre par défaut
         
         products.push({
             id: products.length + 1,
             nom: document.getElementById('pNom').value,
             description: document.getElementById('pDesc').value,
             prix: parseFloat(document.getElementById('pPrix').value),
-            image: img || "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/400px-No_image_available.svg.png",
+            image: imgInput || defaultImg,
             vendeur: appState.walletAddress,
             boutique: this.getBoutique().nom
         });
@@ -235,7 +236,7 @@ const marketplace = {
             const card = document.createElement('div');
             card.className = "produit-card";
             card.innerHTML = `
-                <img src="${prod.image}" class="produit-img" alt="${prod.nom}" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/400px-No_image_available.svg.png'">
+                <img src="${prod.image}" class="produit-img" alt="${prod.nom}" onerror="this.src='https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80'">
                 <div class="produit-info">
                     <span style="font-size:0.65rem; color:var(--primary); font-weight:700;">${prod.boutique}</span>
                     <div class="produit-nom">${prod.nom}</div>
