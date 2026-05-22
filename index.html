@@ -199,9 +199,28 @@
         <div id="view-products" class="view-section hidden">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <h2><i class="fa-solid fa-box"></i> <span class="t-products">Produits</span></h2>
-                <button class="btn btn-primary" style="width:auto; padding:8px 16px;" onclick="alert('Ajout produit bientôt disponible')">+</button>
+                <button class="btn btn-primary" style="width:auto; padding:8px 16px;" onclick="toggleProductForm()">+</button>
             </div>
-            <div class="card">
+
+            <div id="product-form-card" class="card hidden">
+                <h3 style="font-size:15px; margin-bottom:12px;">Nouveau Produit</h3>
+                <div class="form-group"><label>Nom du produit</label><input type="text" id="p-name" class="form-control"></div>
+                <div class="form-group"><label>Prix en MEC</label><input type="number" id="p-price" class="form-control" step="0.1"></div>
+                <div class="form-group">
+                    <label>Catégorie</label>
+                    <select id="p-category" class="form-control">
+                        <option value="Mode">Mode</option>
+                        <option value="Artisanat">Artisanat</option>
+                        <option value="Alimentation">Alimentation</option>
+                        <option value="NFT">NFT</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Description</label><textarea id="p-desc" class="form-control" rows="2"></textarea></div>
+                <div class="form-group"><label>URL de l'image</label><input type="text" id="p-img" class="form-control" placeholder="https://..."></div>
+                <button class="btn btn-primary" onclick="saveProduct()">Publier sur ME Chain</button>
+            </div>
+
+            <div class="card" id="products-list-container">
                 <p style="text-align:center; color:var(--gray);" class="t-no-products">Aucun produit pour le moment.</p>
             </div>
         </div>
@@ -223,9 +242,14 @@
         <div id="view-marketing" class="view-section hidden">
             <h2><i class="fa-solid fa-bullhorn"></i> <span class="t-marketing">Marketing</span></h2>
             <div class="card">
-                <h4 style="margin-bottom:8px;" class="t-mkt-campaign">Campagnes automatisées</h4>
-                <p style="font-size:13px; color:var(--gray); margin-bottom:15px;" class="t-mkt-desc">Synchronisez et publiez vos nouveautés directement sur vos profils sociaux.</p>
-                <button class="btn btn-outline" onclick="alert('Réseau connecté')"><i class="fa-brands fa-facebook" style="color:#1877f2;"></i> Connecter Facebook</button>
+                <h4 style="margin-bottom:12px;" class="t-mkt-campaign">Partager ma boutique</h4>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn" style="background:#25D366; color:white;" onclick="shareStore('whatsapp')"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+                    <button class="btn" style="background:#1877F2; color:white;" onclick="shareStore('facebook')"><i class="fa-brands fa-facebook-f"></i> Facebook</button>
+                    <button class="btn" style="background:#000000; color:white;" onclick="shareStore('tiktok')"><i class="fa-brands fa-tiktok"></i> TikTok</button>
+                    <button class="btn" style="background:#E1306C; color:white;" onclick="shareStore('instagram')"><i class="fa-brands fa-instagram"></i> Instagram</button>
+                    <button class="btn" style="background:#0077B5; color:white;" onclick="shareStore('linkedin')"><i class="fa-brands fa-linkedin-in"></i> LinkedIn</button>
+                </div>
             </div>
         </div>
 
@@ -245,25 +269,98 @@
             <div class="card">
                 <h4 style="margin-bottom:8px;" class="t-media-library">Médiathèque de la marque</h4>
                 <p style="font-size:13px; color:var(--gray); margin-bottom:15px;" class="t-media-desc">Gérez toutes les photos de vos articles de mode, bannières et logos.</p>
-                <button class="btn btn-outline"><i class="fa-solid fa-images"></i> Ouvrir la galerie</button>
+                
+                <label class="btn btn-outline" style="cursor:pointer; margin-bottom:15px;">
+                    <i class="fa-solid fa-images"></i> Ajouter des photos
+                    <input type="file" id="galleryInput" class="hidden" accept="image/*" multiple onchange="handleGalleryUpload(event)">
+                </label>
+
+                <div id="gallery-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;"></div>
             </div>
         </div>
 
         <div id="view-analytics" class="view-section hidden">
             <h2><i class="fa-solid fa-chart-line"></i> <span class="t-analytics">Analyse de données</span></h2>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-val">342</div>
+                    <div class="stat-label t-sessions">Visites uniques</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" style="color:var(--secondary);">6.2%</div>
+                    <div class="stat-label">Taux de conversion</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" style="color:#f59e0b;">18.5 MEC</div>
+                    <div class="stat-label">Panier moyen</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" style="color:#8b5cf6;">24</div>
+                    <div class="stat-label">Nouveaux clients</div>
+                </div>
+            </div>
+
             <div class="card">
-                <h4 style="margin-bottom:10px;" class="t-sessions">Visites de la boutique</h4>
-                <div style="font-size:24px; font-weight:bold; color:var(--secondary); margin-bottom:5px;">342</div>
-                <p style="font-size:12px; color:var(--gray);" class="t-sessions-sub">Visiteurs uniques connectés via ME Pass cette semaine.</p>
+                <h4 style="margin-bottom:15px;">Ventes des 7 derniers jours (MEC)</h4>
+                <svg viewBox="0 0 350 140" style="width:100%; height:auto;">
+                    <text x="20" y="90" font-size="10" font-weight="bold" text-anchor="middle" fill="#008060">8</text>
+                    <rect x="10" y="95" width="20" height="20" fill="#008060" rx="3"/>
+                    <text x="20" y="130" font-size="10" fill="#6d7175" text-anchor="middle">Lun</text>
+
+                    <text x="65" y="70" font-size="10" font-weight="bold" text-anchor="middle" fill="#008060">15</text>
+                    <rect x="55" y="75" width="20" height="40" fill="#008060" rx="3"/>
+                    <text x="65" y="130" font-size="10" fill="#6d7175" text-anchor="middle">Mar</text>
+
+                    <text x="110" y="95" font-size="10" font-weight="bold" text-anchor="middle" fill="#008060">6</text>
+                    <rect x="100" y="100" width="20" height="15" fill="#008060" rx="3"/>
+                    <text x="110" y="130" font-size="10" fill="#6d7175" text-anchor="middle">Mer</text>
+
+                    <text x="155" y="50" font-size="10" font-weight="bold" text-anchor="middle" fill="#008060">22</text>
+                    <rect x="145" y="55" width="20" height="60" fill="#008060" rx="3"/>
+                    <text x="155" y="130" font-size="10" fill="#6d7175" text-anchor="middle">Jeu</text>
+
+                    <text x="200" y="60" font-size="10" font-weight="bold" text-anchor="middle" fill="#008060">18</text>
+                    <rect x="190" y="65" width="20" height="50" fill="#008060" rx="3"/>
+                    <text x="200" y="130" font-size="10" fill="#6d7175" text-anchor="middle">Ven</text>
+
+                    <text x="245" y="30" font-size="10" font-weight="bold" text-anchor="middle" fill="#008060">30</text>
+                    <rect x="235" y="35" width="20" height="80" fill="#008060" rx="3"/>
+                    <text x="245" y="130" font-size="10" fill="#6d7175" text-anchor="middle">Sam</text>
+
+                    <text x="290" y="80" font-size="10" font-weight="bold" text-anchor="middle" fill="#008060">12</text>
+                    <rect x="280" y="85" width="20" height="30" fill="#008060" rx="3"/>
+                    <text x="290" y="130" font-size="10" fill="#6d7175" text-anchor="middle">Dim</text>
+
+                    <line x1="0" y1="115" x2="320" y2="115" stroke="#e1e3e5" stroke-width="1"/>
+                </svg>
             </div>
         </div>
 
         <div id="view-online-store" class="view-section hidden">
             <h2><i class="fa-solid fa-store"></i> <span class="t-online-store">Boutique en ligne</span></h2>
             <div class="card">
-                <h4 style="margin-bottom:8px;">Thème actif</h4>
-                <p style="font-size:13px; color:var(--gray); margin-bottom:15px;">Personnalisez les bannières et l'apparence visuelle.</p>
-                <button class="btn btn-primary" onclick="alert('Éditeur de thème en cours de chargement')">Personnaliser le thème</button>
+                <h4 style="margin-bottom:15px;">Éditeur de thème</h4>
+                
+                <div class="form-group">
+                    <label>Couleur principale de l'interface</label>
+                    <input type="color" id="theme-color-picker" class="form-control" style="height:45px; padding:4px;" value="#008060" oninput="applyThemeColor(this.value)">
+                </div>
+
+                <div class="form-group">
+                    <label>Nom personnalisé de la boutique</label>
+                    <input type="text" id="theme-name-input" class="form-control" placeholder="Entrez le titre..." oninput="applyThemeName(this.value)">
+                </div>
+
+                <div class="form-group">
+                    <label>Bannière / Fond d'entête (Header)</label>
+                    <label class="btn btn-outline" style="cursor:pointer; font-size:13px; padding:8px;">
+                        <i class="fa-solid fa-image"></i> Choisir une image
+                        <input type="file" id="theme-bg-input" class="hidden" accept="image/*" onchange="applyThemeHeaderBg(event)">
+                    </label>
+                </div>
+
+                <button class="btn btn-primary" style="margin-top:10px;" onclick="saveThemeSettings()"><i class="fa-solid fa-floppy-disk"></i> Sauvegarder le thème</button>
             </div>
         </div>
 
@@ -279,7 +376,7 @@
                         <span id="profileInitials" style="font-size:30px; font-weight:bold; color:#666;">MB</span>
                     </div>
                     <label class="btn btn-outline" style="width:auto; padding:6px 12px; font-size:12px; cursor:pointer;">
-                        <i class="fa-solid fa-upload"></i> <span class="t-upload">Changer sary</span>
+                        <i class="fa-solid fa-upload"></i> <span class="t-upload">Changer photo</span>
                         <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="uploadPhoto(event)">
                     </label>
                 </div>
@@ -319,7 +416,7 @@
     </div>
 
     <script>
-        // --- DICTIONNAIRE MULTILINGUE ---
+        // --- MULTILINGUE ---
         const translations = {
             fr: {
                 home: "Accueil", orders: "Commandes", products: "Produits", clients: "Clients", settings: "Paramètres",
@@ -328,10 +425,7 @@
                 "next-steps": "Prochaines étapes", guide: "Personnalisez votre boutique pour attirer vos clients sur Meta Earth.",
                 "no-products": "Aucun produit pour le moment.", profile: "Profil", pseudo: "Pseudo / Nom de boutique",
                 upload: "Changer photo", "choose-avatar": "Ou choisir un avatar :", "language-title": "Langue de l'interface",
-                save: "Enregistrer les modifications", "mkt-campaign": "Campagnes automatisées", "mkt-desc": "Synchronisez et publiez vos nouveautés directement sur vos profils sociaux.",
-                "code-label": "Créer un code promo", "create-discount": "Générer la réduction", "media-library": "Médiathèque de la marque",
-                "media-desc": "Gérez toutes les photos de vos articles de mode, bannières et logos.", "sessions": "Visites de la boutique", "sessions-sub": "Visiteurs uniques connectés via ME Pass cette semaine.",
-                "online-store": "Boutique en ligne"
+                save: "Enregistrer les modifications", "online-store": "Boutique en ligne"
             },
             mg: {
                 home: "Fandraisana", orders: "Kaomandy", products: "Entana", clients: "Mpanjifa", settings: "Paramètres",
@@ -340,10 +434,7 @@
                 "next-steps": "Dingana manaraka", guide: "Amboary ny tsenanao mba hahazoana mpanjifa ao amin'ny Meta Earth.",
                 "no-products": "Tsy misy entana aloha hatreto.", profile: "Ny mombamomba anao", pseudo: "Anarana na Solonanarana",
                 upload: "Hanova sary", "choose-avatar": "Na mifidy sary famantarana :", "language-title": "Fisafidianana fiteny",
-                save: "Tehirizina ny fanovana", "mkt-campaign": "Fampiroboroboana mandeha ho azy", "mkt-desc": "Mampifandray mivantana ny entanao amin'ny kaonty matihanina.",
-                "code-label": "Hanao kaody fihenam-bidy", "create-discount": "Amboary ny fihenam-bidy", "media-library": "Tahirim-bolan'ny marika",
-                "media-desc": "Tantano eto ny sary rehetra, kiraro, fitafiana, sy ny famantarana.", "sessions": "Ny nitsidika ny tsena", "sessions-sub": "Mpanjifa nampiasa ME Pass tamin'ity herinandro ity.",
-                "online-store": "Hivarotra"
+                save: "Tehirizina ny fanovana", "online-store": "Hivarotra"
             },
             en: {
                 home: "Home", orders: "Orders", products: "Products", clients: "Customers", settings: "Settings",
@@ -352,21 +443,16 @@
                 "next-steps": "Next Steps", guide: "Customize your shop to attract your customers on Meta Earth.",
                 "no-products": "No products for now.", profile: "Profile", pseudo: "Pseudo / Shop Name",
                 upload: "Change photo", "choose-avatar": "Or choose an avatar:", "language-title": "Interface Language",
-                save: "Save changes", "mkt-campaign": "Automated Campaigns", "mkt-desc": "Automatically sync and publish your store updates on your profiles.",
-                "code-label": "Create promo code", "create-discount": "Generate discount", "media-library": "Brand Media Library",
-                "media-desc": "Manage all your fashion product photos, banners and logos.", "sessions": "Store Visits", "sessions-sub": "Unique visitors connected via ME Pass this week.",
-                "online-store": "Online Store"
+                save: "Save changes", "online-store": "Online Store"
             }
         };
 
         let currentLang = localStorage.getItem('appLang') || 'fr';
         let userProfile = JSON.parse(localStorage.getItem('userProfile')) || { pseudo: 'Ma Boutique', avatar: null };
 
-        // --- GESTION TRADUCTION ---
         function setLang(lang) {
             currentLang = lang;
             localStorage.setItem('appLang', lang);
-            
             document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
             const targetBtn = document.getElementById('btn-' + lang);
             if (targetBtn) targetBtn.classList.add('active');
@@ -378,26 +464,20 @@
             }
         }
 
-        // --- CHANGER DE SÉLECTION / VUE ---
+        // --- NAVIGATEUR DES PAGES ---
         function navTo(viewId) {
-            // Cacher toutes les sections
             document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
-            
-            // Afficher celle demandée
             const targetView = document.getElementById('view-' + viewId);
             if (targetView) targetView.classList.remove('hidden');
 
-            // Mettre à jour l'état actif dans la Sidebar gauche
             document.querySelectorAll('.sidebar-menu .menu-item').forEach(m => m.classList.remove('active'));
             const sideItem = document.getElementById('menu-' + viewId);
             if (sideItem) sideItem.classList.add('active');
 
-            // Mettre à jour l'état de la barre inférieure (seulement pour Home, Products, Settings)
             document.querySelectorAll('.bottom-nav .nav-icon-btn').forEach(btn => btn.classList.remove('active'));
             const bottomBtn = document.getElementById('nav-btn-' + viewId);
             if (bottomBtn) bottomBtn.classList.add('active');
 
-            // Toujours fermer après action
             closeSidebar();
         }
 
@@ -411,7 +491,136 @@
             document.getElementById('overlay').style.display = 'none';
         }
 
-        // --- MISE À JOUR DU PROFIL ---
+        // --- SYSTEME PRODUIT ---
+        function toggleProductForm() {
+            document.getElementById('product-form-card').classList.toggle('hidden');
+        }
+
+        function saveProduct() {
+            const name = document.getElementById('p-name').value;
+            const price = document.getElementById('p-price').value;
+            const cat = document.getElementById('p-category').value;
+            const desc = document.getElementById('p-desc').value;
+            const img = document.getElementById('p-img').value || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=150';
+
+            if(!name || !price) return alert('Veuillez remplir le nom et le prix');
+
+            const products = JSON.parse(localStorage.getItem('me_tsena_products')) || [];
+            products.push({ name, price, cat, desc, img, id: Date.now() });
+            localStorage.setItem('me_tsena_products', JSON.stringify(products));
+
+            displayProducts();
+            toggleProductForm();
+            
+            document.getElementById('p-name').value = ''; document.getElementById('p-price').value = '';
+            document.getElementById('p-desc').value = ''; document.getElementById('p-img').value = '';
+        }
+
+        function displayProducts() {
+            const container = document.getElementById('products-list-container');
+            const products = JSON.parse(localStorage.getItem('me_tsena_products')) || [];
+            if(products.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:var(--gray);" class="t-no-products">Aucun produit pour le moment.</p>`;
+                return;
+            }
+            container.innerHTML = products.map(p => `
+                <div class="data-list-item" style="align-items: flex-start; gap: 12px;">
+                    <img src="${p.img}" style="width:50px; height:50px; border-radius:6px; object-fit:cover; background:#eee;">
+                    <div style="flex:1;">
+                        <strong>${p.name}</strong> <span class="badge" style="font-size:10px; padding:2px 6px;">${p.cat}</span><br>
+                        <small style="color:var(--gray);">${p.desc || ''}</small>
+                    </div>
+                    <div class="amount-positive">${p.price} MEC</div>
+                </div>
+            `).join('');
+        }
+
+        // --- COMPOSANT DE PARTAGE MARKETING ---
+        function shareStore(platform) {
+            const url = 'https://me-tsena.vercel.app';
+            const text = 'Découvrez ma boutique ME Tsena !';
+            if (platform === 'whatsapp') window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+            else if (platform === 'facebook') window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+            else if (platform === 'linkedin') window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
+            else if (platform === 'tiktok' || platform === 'instagram') {
+                navigator.clipboard.writeText(url);
+                alert(platform === 'tiktok' ? 'Lien copié ! Ouvrez TikTok.' : 'Lien copié ! Collez-le dans votre bio Instagram.');
+                window.open(platform === 'tiktok' ? 'https://www.tiktok.com' : 'https://www.instagram.com', '_blank');
+            }
+        }
+
+        // --- MEDIATHEQUE CONTENUS ---
+        function handleGalleryUpload(event) {
+            const files = event.target.files;
+            const gallery = JSON.parse(localStorage.getItem('me_tsena_gallery')) || [];
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function() {
+                    gallery.push(reader.result);
+                    localStorage.setItem('me_tsena_gallery', JSON.stringify(gallery));
+                    loadGallery();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function loadGallery() {
+            const grid = document.getElementById('gallery-grid');
+            const gallery = JSON.parse(localStorage.getItem('me_tsena_gallery')) || [];
+            grid.innerHTML = gallery.map((imgData, index) => `
+                <div style="position:relative; width:100%; aspect-ratio:1; border-radius:8px; overflow:hidden; border:1px solid var(--border);">
+                    <img src="${imgData}" style="width:100%; height:100%; object-fit:cover;">
+                    <button onclick="deleteGalleryImg(${index})" style="position:absolute; top:4px; right:4px; background:rgba(26,26,26,0.8); color:white; border:none; border-radius:50%; width:20px; height:20px; font-size:10px; display:flex; align-items:center; justify-content:center;">×</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteGalleryImg(index) {
+            const gallery = JSON.parse(localStorage.getItem('me_tsena_gallery')) || [];
+            gallery.splice(index, 1);
+            localStorage.setItem('me_tsena_gallery', JSON.stringify(gallery));
+            loadGallery();
+        }
+
+        // --- EDITEUR DU THEME VISUEL ---
+        function applyThemeColor(val) { document.documentElement.style.setProperty('--primary', val); }
+        function applyThemeName(val) { const title = document.querySelector('header .logo-area span'); if(title) title.innerText = val || 'ME Tsena'; }
+        function applyThemeHeaderBg(event) {
+            const file = event.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function() {
+                    document.querySelector('header').style.backgroundImage = `url(${reader.result})`;
+                    document.querySelector('header').style.backgroundSize = 'cover';
+                    document.querySelector('header').style.backgroundPosition = 'center';
+                    localStorage.setItem('me_tsena_theme_bg', reader.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveThemeSettings() {
+            localStorage.setItem('me_tsena_theme_color', document.getElementById('theme-color-picker').value);
+            localStorage.setItem('me_tsena_theme_name', document.getElementById('theme-name-input').value);
+            alert('Thème sauvegardé !');
+        }
+
+        function loadThemeSettings() {
+            const savedColor = localStorage.getItem('me_tsena_theme_color') || '#008060';
+            const savedName = localStorage.getItem('me_tsena_theme_name') || 'ME Tsena';
+            const savedBg = localStorage.getItem('me_tsena_theme_bg');
+            document.getElementById('theme-color-picker').value = savedColor;
+            document.getElementById('theme-name-input').value = savedName;
+            applyThemeColor(savedColor);
+            applyThemeName(savedName);
+            if(savedBg) {
+                document.querySelector('header').style.backgroundImage = `url(${savedBg})`;
+                document.querySelector('header').style.backgroundSize = 'cover';
+                document.querySelector('header').style.backgroundPosition = 'center';
+            }
+        }
+
+        // --- PARAMÈTRES DU PROFIL ANCIEN ---
         function updateProfile() {
             const pseudo = document.getElementById('pseudoInput').value || 'Ma Boutique';
             userProfile.pseudo = pseudo;
@@ -420,20 +629,11 @@
             document.getElementById('profileInitials').innerText = initials;
         }
 
-        function selectAvatar(url) {
-            userProfile.avatar = url;
-            applyAvatar(url);
-        }
-
+        function selectAvatar(url) { userProfile.avatar = url; applyAvatar(url); }
         function uploadPhoto(event) {
             const reader = new FileReader();
-            reader.onload = function() {
-                userProfile.avatar = reader.result;
-                applyAvatar(reader.result);
-            };
-            if(event.target.files[0]) {
-                reader.readAsDataURL(event.target.files[0]);
-            }
+            reader.onload = function() { userProfile.avatar = reader.result; applyAvatar(reader.result); };
+            if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
         }
 
         function applyAvatar(url) {
@@ -445,17 +645,17 @@
             }
         }
 
-        function saveAllSettings() {
-            localStorage.setItem('userProfile', JSON.stringify(userProfile));
-            alert(currentLang === 'fr' ? 'Paramètres enregistrés !' : 'Voatahiry ny fanovana !');
-        }
+        function saveAllSettings() { localStorage.setItem('userProfile', JSON.stringify(userProfile)); alert('Paramètres enregistrés !'); }
 
-        // --- INITIALISATION AU CHARGEMENT ---
+        // --- BOOTSTRAP AU CHARGEMENT ---
         window.onload = () => {
             setLang(currentLang);
             document.getElementById('pseudoInput').value = userProfile.pseudo;
             updateProfile();
             if (userProfile.avatar) applyAvatar(userProfile.avatar);
+            displayProducts();
+            loadGallery();
+            loadThemeSettings();
         };
     </script>
 </body>
