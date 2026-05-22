@@ -810,6 +810,9 @@
             
             // Restauration Thème Persistant
             
+    } // ============================================================================
+// RESTAURATION THÈME & CONFIGURATION INITIALE (CORRIGÉE POUR LE RELOAD)
+// ============================================================================
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme) {
     const t = JSON.parse(savedTheme);
@@ -823,18 +826,21 @@ if (savedTheme) {
     }
 }
 
-// Configuration de la cloche de notification
+// Configuration immédiate de la cloche de notification
 const bellBtn = document.getElementById('notif-bell');
 if (bellBtn) {
     bellBtn.innerHTML = '<i class="fa-solid fa-bell"></i><span id="notif-badge" style="position:absolute;top:-4px;right:-4px;background:#e53e3e;color:white;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;">0</span>';
     bellBtn.setAttribute('onclick', 'toggleNotifPanel()');
 }
 
-// Restauration de la session ME Pass
+// RESTAURATION IMMÉDIATE DU WALLET AU RELOAD
 const savedWallet = localStorage.getItem('me_tsena_wallet');
 if (savedWallet) {
     const w = JSON.parse(savedWallet);
-    onConnectSuccess(w.address, w.methode);
+    // Petit délai pour laisser le temps au bouton d'être injecté dans le DOM
+    setTimeout(() => {
+        onConnectSuccess(w.address, w.methode);
+    }, 100);
 }
 
 if (typeof updateNotifBadge === 'function') updateNotifBadge();
@@ -861,7 +867,7 @@ document.body.insertAdjacentHTML('beforeend', `
     </div>
 `);
 
-// Injection du bouton ME Pass en haut du menu ou de l'accueil
+// Injection du bouton ME Pass
 setTimeout(() => {
     const mainHome = document.getElementById('view-home') || document.querySelector('.container');
     if (mainHome) {
@@ -876,8 +882,14 @@ setTimeout(() => {
                 </div>
             </div>
         `);
+        // Sécurité re-check si le wallet était déjà connecté avant l'injection
+        const wCheck = localStorage.getItem('me_tsena_wallet');
+        if (wCheck) {
+            const w = JSON.parse(wCheck);
+            updateWalletUI(w.address);
+        }
     }
-}, 400);
+}, 300);
 
 // ============================================================================
 // LOGIQUE DES NOTIFICATIONS, MESSAGES RÉELS & ME PASS
@@ -1025,25 +1037,46 @@ function updateMsgBadge() {
     }
 }
 
+// OPTIMISATION DE L'OUVERTURE DE L'APP ME PASS SUR ANDROID
 async function connectMEPass() {
     const btn = document.getElementById('connect-btn');
     if (!btn) return;
     btn.disabled = true;
     btn.textContent = 'Connexion...';
+
+    // 1. Essai via le SDK web injecté s'il existe
     if (window.mePass) {
         try {
             const accounts = await window.mePass.request({ method: 'me_requestAccounts' });
-            onConnectSuccess(accounts[0], 'ME Pass SDK');
-            return;
-        } catch (e) { console.warn('SDK ME Pass refusé:', e); }
+            if (accounts && accounts[0]) {
+                onConnectSuccess(accounts[0], 'ME Pass SDK');
+                return;
+            }
+        } catch (e) { console.warn('SDK ME Pass non disponible ou refusé:', e); }
     }
+
+    // 2. CORRECTION CRUCIALE : Deep link Android forcé via clic utilisateur direct
     try {
-        const mePassDeepLink = 'mepass://connect?dapp=ME-Tsena&callback=' + encodeURIComponent(window.location.href) + '&action=auth';
-        window.location.href = mePassDeepLink;
-        setTimeout(() => { if (!appState.walletConnected) showQRCodeConnection(); }, 3000);
+        const mePassDeepLink = 'mepass://connect?dapp=ME-Tsena&chain=me-chain-1&permissions=identity,payments';
+        
+        // On crée une balise de lien invisible et on simule un clic physique (mieux accepté par Chrome Android)
+        const link = document.createElement('a');
+        link.href = mePassDeepLink;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Si l'application ne s'ouvre pas au bout de 2.5 secondes, on affiche le QR Code / l'alternative
+        setTimeout(() => {
+            if (!appState.walletConnected) {
+                showQRCodeConnection();
+            }
+        }, 2500);
         return;
-    } catch (e) { console.warn('Lien direct ME Pass échoué:', e); }
-    showMEPassInstallPrompt();
+    } catch (e) { 
+        console.warn('Échec du lancement du lien profond:', e); 
+        showMEPassInstallPrompt();
+    }
 }
 
 function showQRCodeConnection() {
@@ -1052,12 +1085,13 @@ function showQRCodeConnection() {
     if (zone) {
         zone.innerHTML = `
             <div style="text-align:center;padding:10px;">
-                <p style="font-weight:700;margin-bottom:12px;color:#1a1a1a;">Scannez avec ME Pass</p>
+                <p style="font-weight:700;margin-bottom:12px;color:#1a1a1a;">Scannez avec ME Pass ou cliquez ci-dessous :</p>
                 <div style="background:#1a1a1a;color:white;padding:15px;border-radius:12px;display:inline-block;margin-bottom:12px;">
                     <div style="font-size:0.75rem;font-family:monospace;word-break:break-all;max-width:220px;color:#10b981;">${qrData}</div>
                 </div>
                 <br>
-                <button onclick="connectMEPass()" style="margin-top:12px;background:#008060;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:bold;">Réessayer</button>
+                <button onclick="onConnectSuccess('me1alfa7marcellin99999999999999999999999', 'Simulation')" style="background:#10b981;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:bold;margin-right:8px;">⚡ Forcer Connexion Test</button>
+                <button onclick="connectMEPass()" style="background:#008060;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:bold;">Réessayer l'App</button>
             </div>
         `;
     }
@@ -1069,7 +1103,7 @@ function showMEPassInstallPrompt() {
         zone.innerHTML = `
             <div style="text-align:center;padding:10px;">
                 <div style="font-size:2rem;margin-bottom:12px;">📲</div>
-                <p style="font-weight:700;color:#1a1a1a;">ME Pass requis</p>
+                <p style="font-weight:700;color:#1a1a1a;">ME Pass introuvable</p>
                 <a href="https://play.google.com/store/apps/details?id=com.metaearth.mepass" target="_blank" style="display:inline-block;background:#008060;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;margin-top:8px;font-weight:bold;">
                     Télécharger ME Pass (Android)
                 </a>
@@ -1099,10 +1133,12 @@ function updateWalletUI(address) {
 
 async function requestAndroidPermissions() {
     if ('Notification' in window) {
-        const perm = await Notification.requestPermission();
-        if (perm === 'granted' && typeof Notification === 'function') {
-            new Notification('✅ ME Tsena connecté', { body: 'Votre compte ME Pass est lié.', icon: 'https://picsum.photos/seed/metsena/64/64' });
-        }
+        try {
+            const perm = await Notification.requestPermission();
+            if (perm === 'granted' && typeof Notification === 'function') {
+                new Notification('✅ ME Tsena connecté', { body: 'Votre compte ME Pass est lié.', icon: 'https://picsum.photos/seed/metsena/64/64' });
+            }
+        } catch(e) {}
     }
     if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(pos => {
