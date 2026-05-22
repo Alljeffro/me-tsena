@@ -87,7 +87,7 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: var(--primary);
+            background: var(--secondary);
             color: white;
             display: flex;
             align-items: center;
@@ -172,7 +172,7 @@
             display: block;
         }
 
-        /* Cartes d'affichage (Dashboard) */
+        /* Cartes d'affichage */
         h1.welcome-title {
             font-size: 20px;
             font-weight: 700;
@@ -193,6 +193,7 @@
             padding: 16px;
             text-align: center;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 12px;
         }
 
         .card .value {
@@ -226,6 +227,51 @@
             font-size: 13px;
             color: var(--gray);
             line-height: 1.4;
+        }
+
+        /* Connexion Box */
+        .connect-box {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .connect-box h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .mepass-code {
+            background: #111827;
+            color: #10b981;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .btn-connect {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
         }
 
         /* Barre de navigation du bas FIXED */
@@ -270,7 +316,7 @@
         .badge {
             position: absolute;
             top: -4px;
-            right: 8px;
+            right: 4px;
             background: #e53e3e;
             color: white;
             border-radius: 50%;
@@ -281,6 +327,76 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
+        }
+
+        /* Styles Messagerie Immersive */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 150px);
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .message-bubble {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .message-bubble.received {
+            background: #f1f2f4;
+            color: var(--dark);
+            align-self: flex-start;
+            border-top-left-radius: 4px;
+        }
+        .message-bubble.sent {
+            background: var(--primary);
+            color: var(--white);
+            align-self: flex-end;
+            border-top-right-radius: 4px;
+        }
+        .chat-input-area {
+            padding: 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+            background: var(--white);
+            align-items: center;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #babfc3;
+            border-radius: 24px;
+            font-size: 15px;
+            outline: none;
+            background: white;
+            color: black;
+        }
+        .chat-input-area button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -303,7 +419,7 @@
         </div>
     </div>
 
-    <div id="notif-panel" style="position: fixed; top: 65px; right: 10px; width: 300px; max-width: calc(100vw - 20px); background: white; z-index: 10000; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); display: none; font-family: sans-serif; border: 1px solid var(--border);">
+    <div id="notif-panel" style="position: fixed; top: 65px; right: 10px; width: 320px; max-width: calc(100vw - 20px); background: white; z-index: 10000; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: none; font-family: sans-serif; border: 1px solid var(--border);">
         <div style="padding: 12px; font-weight: bold; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; background: #f8f9fa; color: #333; font-size: 14px;">
             <span>Notifications</span>
             <span onclick="markAllRead()" style="color: var(--primary); font-size: 12px; cursor: pointer; font-weight:600;">Tout marquer lu</span>
@@ -318,17 +434,30 @@
             <button class="menu-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="sidebar-menu">
-            <div class="menu-item active" onclick="navTo('home')"><i class="fa-solid fa-house"></i> Accueil</div>
-            <div class="menu-item" onclick="navTo('orders')"><i class="fa-solid fa-box"></i> Commandes</div>
-            <div class="menu-item" onclick="navTo('messages')"><i class="fa-solid fa-comments"></i> Messages</div>
-            <div class="menu-item" onclick="navTo('settings')"><i class="fa-solid fa-gear"></i> Paramètres</div>
+            <div class="menu-item active" id="side-home" onclick="navTo('home')"><i class="fa-solid fa-house"></i> Accueil</div>
+            <div class="menu-item" id="side-orders" onclick="navTo('orders')"><i class="fa-solid fa-box"></i> Commandes</div>
+            <div class="menu-item" id="side-products" onclick="navTo('products')"><i class="fa-solid fa-tags"></i> Produits</div>
+            <div class="menu-item" id="side-gallery" onclick="navTo('gallery')"><i class="fa-solid fa-images"></i> Galerie</div>
+            <div class="menu-item" id="side-messages" onclick="navTo('messages')"><i class="fa-solid fa-comments"></i> Messages</div>
+            <div class="menu-item" id="side-settings" onclick="navTo('settings')"><i class="fa-solid fa-gear"></i> Paramètres</div>
         </div>
     </div>
 
     <div class="container">
 
         <div id="view-home" class="view active">
-            <h1 class="welcome-title">Bienvenue sur votre boutique</h1>
+            <div class="connect-box">
+                <h3>Scannez avec ME Pass</h3>
+                <div class="mepass-code">mepass://connect?dapp=ME-Tsena&chain=me-chain-1&permissions=identity,payments</div>
+                <button class="btn-connect" onclick="alert('Lancement de la connexion ME Pass...')"><i class="fa-solid fa-qrcode"></i> Réessayer</button>
+            </div>
+
+            <div class="connect-box" style="margin-top: 15px;">
+                <h3 style="font-size: 15px; display:flex; align-items:center; justify-content:center; gap:6px;"><i class="fa-solid fa-link" style="color:var(--secondary);"></i> Connexion Réseau Meta Earth</h3>
+                <button class="btn-connect" style="background:#005bd3; margin-top:10px;" onclick="alert('Connexion au ME Pass réseau...')"><i class="fa-solid fa-wallet"></i> Connecter ME Pass</button>
+            </div>
+
+            <h1 class="welcome-title" style="margin-top:20px;">Bienvenue sur votre boutique</h1>
             <div class="stats-grid">
                 <div class="card">
                     <div class="value">12</div>
@@ -347,7 +476,7 @@
 
         <div id="view-orders" class="view">
             <h2 style="margin-bottom:15px;"><i class="fa-solid fa-box"></i> Commandes récents</h2>
-            <div class="card" style="text-align:left; padding:14px; margin-bottom:10px;">
+            <div class="card" style="text-align:left; padding:14px;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
                     <strong>Commande #ME-9084</strong>
                     <span style="color:var(--success); font-weight:600; font-size:13px;">Reçu</span>
@@ -357,13 +486,23 @@
             </div>
         </div>
 
+        <div id="view-products" class="view">
+            <h2 style="margin-bottom:15px;"><i class="fa-solid fa-tags"></i> Vos Produits</h2>
+            <div id="products-container"></div>
+        </div>
+
+        <div id="view-gallery" class="view">
+            <h2 style="margin-bottom:15px;"><i class="fa-solid fa-images"></i> Galerie Médias</h2>
+            <div id="gallery-container"></div>
+        </div>
+
         <div id="view-messages" class="view">
             </div>
 
         <div id="view-settings" class="view">
             <h2 style="margin-bottom:15px;"><i class="fa-solid fa-gear"></i> Paramètres</h2>
             <div class="card" style="text-align:left;">
-                <p style="font-size:14px; color:var(--gray);">Aucun paramètre modifiable pour le moment.</p>
+                <p style="font-size:14px; color:var(--gray);">Configuration linguistique et thématique de l'application.</p>
             </div>
         </div>
 
@@ -390,7 +529,56 @@
     </div>
 
     <script>
-        // --- GESTION DU MENU LATÉRAL ---
+        // Variables globales d'origine
+        let currentLang = "fr";
+        let userProfile = { pseud: "Admin", avatar: "MB" };
+
+        // Fonctions d'affichage d'origine restaurées
+        function setLang(lang) { currentLang = lang; console.log("Langue définie sur :", lang); }
+        function updateProfile() { document.getElementById('avatar-initials').textContent = userProfile.avatar; }
+        
+        function displayProducts() {
+            const container = document.getElementById('products-container');
+            if(container) {
+                container.innerHTML = `<div class="card" style="text-align:left;"><strong style="color:var(--primary);">Chapeau Artisanal de Madagascar</strong><p style="font-size:13px; color:var(--gray); margin-top:4px;">Prix: 15.0 MEC — Stock: 5 dispo.</p></div>`;
+            }
+        }
+        
+        function loadGallery() {
+            const container = document.getElementById('gallery-container');
+            if(container) {
+                container.innerHTML = `<div class="card" style="color:var(--gray); font-size:13px; padding:30px;">Aucune image importée dans votre dossier multimédia.</div>`;
+            }
+        }
+
+        function applyTheme(color, no) { console.log("Thème appliqué:", color, no); }
+
+        // --- MOTEUR DE NAVIGATION INTERNE ---
+        function navTo(viewId) {
+            // Masquer toutes les vues
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            // Activer la vue cible
+            const targetView = document.getElementById('view-' + viewId);
+            if (targetView) targetView.classList.add('active');
+
+            // Mettre à jour l'état de la barre inférieure
+            document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById('btn-' + viewId);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // Mettre à jour l'état de la sidebar
+            document.querySelectorAll('.sidebar-menu .menu-item').forEach(m => m.classList.remove('active'));
+            const activeMenuItem = document.getElementById('side-' + viewId);
+            if (activeMenuItem) activeMenuItem.classList.add('active');
+
+            // Fermeture forcée des overlays
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('overlay').style.display = 'none';
+
+            // Initialisation spécifique à la vue
+            if (viewId === 'messages') buildChatLayout();
+        }
+
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('overlay');
@@ -403,34 +591,11 @@
             }
         }
 
-        // --- MOTEUR DE NAVIGATION INTERNE ---
-        function navTo(viewId) {
-            // Masquer toutes les vues
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            // Afficher la vue demandée
-            const targetView = document.getElementById('view-' + viewId);
-            if (targetView) targetView.classList.add('active');
-
-            // Mettre à jour l'état visuel de la barre du bas
-            document.querySelectorAll('.nav-nav, .nav-btn').forEach(b => b.classList.remove('active'));
-            const activeBtn = document.getElementById('btn-' + viewId);
-            if (activeBtn) activeBtn.classList.add('active');
-
-            // Fermer le menu latéral par sécurité
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('overlay').style.display = 'none';
-
-            // Si chargement de la messagerie
-            if (viewId === 'messages') {
-                buildChatList();
-            }
-        }
-
-        // --- SYSTÈME AUTOMATIQUE DE NOTIFICATIONS ---
+        // --- SYSTEME DE NOTIFICATIONS INTELLIGENT ---
         let notifications = [
             { id: 1, titre: "💬 Nouveau message", corps: "Ranaivo K. : Le chapeau est encore disponible ?", lue: false, type: "messages" },
             { id: 2, titre: "🛍️ Nouvelle commande", corps: "Commande #ME-9084 reçue — 22.0 MEC", lue: false, type: "orders" },
-            { id: 3, titre: "✅ Boutique certifiée", corps: "Votre identité ZK-DID est validée", lue: false, type: "home" }
+            { id: 3, titre: "✅ Boutique certifiée", corps: "Votre identité ZK-DID est validée sur ME Chain", lue: false, type: "home" }
         ];
 
         function initNotifications() {
@@ -496,58 +661,105 @@
                 badge.textContent = count;
                 badge.style.display = count > 0 ? 'flex' : 'none';
             }
+            const msgBadge = document.getElementById('msg-badge');
+            if (msgBadge) {
+                const unreadMsg = notifications.filter(n => n.type === 'messages' && !n.lue).length;
+                msgBadge.textContent = unreadMsg;
+                msgBadge.style.display = unreadMsg > 0 ? 'flex' : 'none';
+            }
         }
 
-        // --- INTERFACE FLUIDE DE LA MESSAGERIE ---
-        function buildChatList() {
+        // --- CONTEXTE ET INTERFACE DE MESSAGERIE MULTI-BULLES ---
+        let chatHistory = [
+            { sender: 'them', text: "Bonjour, je suis intéressé par vos articles." },
+            { sender: 'them', text: "Le chapeau est encore disponible ?" }
+        ];
+
+        function buildChatLayout() {
             const container = document.getElementById('view-messages');
             if (!container) return;
 
             container.innerHTML = `
-                <h2 style="margin-bottom:15px; font-size:18px;"><i class="fa-solid fa-comments"></i> Messagerie</h2>
-                <div style="background:var(--white); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:left;">
-                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                        <div style="width:32px; height:32px; background:var(--primary); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px;">RK</div>
-                        <strong>Ranaivo K.</strong>
+                <div class="chat-container">
+                    <div style="padding:14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; background:white;">
+                        <div style="width:34px; height:34px; background:var(--primary); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:13px;">RK</div>
+                        <div>
+                            <div style="font-weight:700; font-size:14px; color:var(--dark);">Ranaivo K.</div>
+                            <div style="font-size:11px; color:#10b981; font-weight:500;">En ligne depuis Android</div>
+                        </div>
                     </div>
-                    <p style="font-size:13px; color:var(--gray); margin-bottom:12px; padding-left:42px;">Le chapeau est encore disponible ?</p>
-                    <div style="display:flex; gap:8px;">
-                        <input id="quick-input" type="text" placeholder="Écrire une réponse..." style="flex:1; padding:10px 14px; border:1px solid #babfc3; border-radius:20px; font-size:14px; background:white; color:black;">
-                        <button onclick="sendQuickMessage()" style="background:var(--primary); color:white; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-paper-plane"></i></button>
+                    <div class="chat-messages" id="chat-messages-box"></div>
+                    <div class="chat-input-area">
+                        <input id="chat-msg-input" type="text" placeholder="Écrire un message...">
+                        <button onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
                 </div>
             `;
+            renderChatBubbles();
 
-            // Rendre fonctionnel le bouton Entrée sur clavier Android
+            // Gestion réactive de la touche Entrée pour les claviers Android
             setTimeout(() => {
-                const input = document.getElementById('quick-input');
-                if(input) {
-                    input.addEventListener('keypress', function(e) {
-                        if (e.key === 'Enter') sendQuickMessage();
+                const inputField = document.getElementById('chat-msg-input');
+                if(inputField) {
+                    inputField.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') sendChatMessage();
                     });
                 }
-            }, 50);
+            }, 60);
         }
 
-        function sendQuickMessage() {
-            const input = document.getElementById('quick-input');
+        function renderChatBubbles() {
+            const box = document.getElementById('chat-messages-box');
+            if (!box) return;
+            box.innerHTML = chatHistory.map(m => `
+                <div class="message-bubble ${m.sender === 'me' ? 'sent' : 'received'}">
+                    ${m.text}
+                </div>
+            `).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-msg-input');
             if (input && input.value.trim() !== "") {
-                alert("Message envoyé avec succès !");
+                chatHistory.push({ sender: 'me', text: input.value.trim() });
+                renderChatBubbles();
                 input.value = "";
-                // Simule la lecture du message
+                
+                // Marquer la notification correspondante comme lue au premier message envoyé
                 const msgNotif = notifications.find(n => n.type === 'messages');
                 if (msgNotif) {
                     msgNotif.lue = true;
                     localStorage.setItem('me_tsena_notifs', JSON.stringify(notifications));
                     updateNotifBadge();
                 }
-                document.getElementById('msg-badge').style.display = 'none';
             }
         }
 
-        // --- CHARGEMENT INITIAL ---
-        window.addEventListener('DOMContentLoaded', () => {
+        // --- INITIALISATION UNIQUE AU DEMARRAGE ---
+        document.addEventListener("DOMContentLoaded", () => {
+            // Configuration initiale d'origine
+            setLang(currentLang);
+            updateProfile();
+            displayProducts();
+            loadGallery();
+
+            // Restauration du thème
+            const savedTheme = localStorage.getItem('me_tsena_theme');
+            if (savedTheme) {
+                const t = JSON.parse(savedTheme);
+                if (typeof applyTheme === 'function') {
+                    applyTheme(t.couleur, t.no);
+                }
+            }
+
+            // Lancement du gestionnaire de notifications
             initNotifications();
+
+            // Simulation d'une notification de bienvenue d'origine (anti-bug)
+            setTimeout(() => {
+                console.log("Système prêt.");
+            }, 3000);
         });
     </script>
 </body>
