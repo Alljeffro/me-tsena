@@ -808,23 +808,39 @@
             displayProducts();
             loadGallery();
             
-            }
+        }
 
-// ============================================================================
-// INITIALISATION DE LA CLOCHE & DE LA MESSAGERIE (ANTI-CONFLIT)
-// ============================================================================
-let notifications = [];
+<div style="position: fixed; top: 15px; right: 80px; z-index: 10000;">
+    <button onclick="toggleNotifPanel()" style="background: #f4f6f8; border: 1px solid #babfc3; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span id="notif-badge" style="position: absolute; top: -4px; right: -4px; background: #e53e3e; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; font-family: sans-serif;">3</span>
+    </button>
+</div>
+
+<div id="notif-panel" style="position: fixed; top: 65px; right: 10px; width: 300px; max-width: calc(100vw - 20px); background: white; z-index: 100000; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: none; font-family: sans-serif; border: 1px solid #e1e3e5;">
+    <div style="padding: 12px; font-weight: bold; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; background: #f8f9fa; color: #333; font-size: 14px;">
+        <span>Notifications</span>
+        <span onclick="markAllRead()" style="color: #008060; font-size: 12px; cursor: pointer;">Tout marquer lu</span>
+    </div>
+    <div id="notif-list" style="max-height: 300px; overflow-y: auto;"></div>
+</div>
+
+<script>
+// Base de données locale de secours
+let notifications = [
+    { id: 1, titre: "💬 Nouveau message", corps: "Ranaivo K. : Le chapeau est encore disponible ?", lue: false },
+    { id: 2, titre: "🛍️ Nouvelle commande", corps: "Commande #ME-9084 reçue — 22.0 MEC", lue: false },
+    { id: 3, titre: "✅ Boutique certifiée", corps: "Votre identité ZK-DID est validée", lue: false }
+];
 
 function initNotifications() {
-    const localNotifs = localStorage.getItem('me_tsena_notifs');
-    if (localNotifs) {
-        notifications = JSON.parse(localNotifs);
+    const local = localStorage.getItem('me_tsena_notifs');
+    if (local) {
+        notifications = JSON.parse(local);
     } else {
-        notifications = [
-            { id: 1, titre: "💬 Nouveau message", corps: "Ranaivo K. : Le chapeau est encore disponible ?", heure: "Il y a 5 min", lue: false, action: "messages" },
-            { id: 2, titre: "🛍️ Nouvelle commande", corps: "Commande #ME-9084 reçue — 22.0 MEC", heure: "Il y a 1h", lue: false, action: "orders" },
-            { id: 3, titre: "✅ Boutique certifiée", corps: "Votre identité ZK-DID est validée sur ME Chain", heure: "Hier", lue: false, action: "home" }
-        ];
         localStorage.setItem('me_tsena_notifs', JSON.stringify(notifications));
     }
     updateNotifBadge();
@@ -845,16 +861,14 @@ function renderNotifications() {
     const container = document.getElementById('notif-list');
     if (!container) return;
     
-    if (notifications.length === 0) {
-        container.innerHTML = `<div style="padding:20px;text-align:center;color:#6d7175;font-size:14px;">Aucune notification</div>`;
+    if (notifications.length === 0 || notifications.every(n => n.lue)) {
+        container.innerHTML = `<div style="padding:20px;text-align:center;color:#6d7175;font-size:13px;">Aucune nouvelle notification</div>`;
         return;
     }
 
     container.innerHTML = notifications.map(n => `
-        <div onclick="clickNotif(${n.id})" style="padding:12px;border-bottom:1px solid #eee;background:${n.lue ? '#fff' : '#f4fbf7'};cursor:pointer;color:#1a1a1a;text-align:left;">
-            <div style="font-weight:${n.lue ? '500' : '700'};font-size:13px;display:flex;justify-content:space-between;">
-                <span>${n.titre}</span>
-            </div>
+        <div onclick="clickNotif(${n.id})" style="padding:12px;border-bottom:1px solid #eee;background:${n.lue ? '#ffffff' : '#f4fbf7'};cursor:pointer;color:#1a1a1a;text-align:left;">
+            <div style="font-weight:700;font-size:13px;color:#1a1a1a;">${n.titre}</div>
             <div style="font-size:12px;color:#6d7175;margin-top:2px;">${n.corps}</div>
         </div>
     `).join('');
@@ -868,10 +882,15 @@ function clickNotif(id) {
         updateNotifBadge();
         toggleNotifPanel();
         
-        if (typeof navTo === 'function') {
-            navTo(n.action);
+        // Redirection forcée vers la vue messagerie si c'est un message
+        if (n.titre.includes("message")) {
+            const viewMsg = document.getElementById('view-messages');
+            if (viewMsg) {
+                document.querySelectorAll('.view, [id^="view-"]').forEach(v => v.style.display = 'none');
+                viewMsg.style.display = 'block';
+                buildChatList();
+            }
         }
-        if (n.action === 'messages') buildChatList();
     }
 }
 
@@ -884,55 +903,43 @@ function markAllRead() {
 
 function updateNotifBadge() {
     const count = notifications.filter(n => !n.lue).length;
-    const badge = document.querySelector('.fa-bell')?.parentElement?.querySelector('span') || document.getElementById('notif-badge');
+    const badge = document.getElementById('notif-badge');
     if (badge) {
         badge.textContent = count;
         badge.style.display = count > 0 ? 'flex' : 'none';
     }
 }
 
-// Branchement forcé du clic de la cloche
-function setupCloche() {
-    const cloche = document.querySelector('.fa-bell')?.parentElement;
-    if (cloche) {
-        cloche.onclick = function(e) {
-            e.preventDefault();
-            toggleNotifPanel();
-        };
-    }
-}
-
-// Messagerie instantanée de repli
+// Fonction autonome pour générer l'interface de messagerie
 function buildChatList() {
     const container = document.getElementById('view-messages');
     if (!container) return;
-    container.innerHTML = `<h2><i class="fa-solid fa-comments"></i> Messagerie</h2><div class="card" style="padding:15px;text-align:left;color:#1a1a1a;"><strong>Ranaivo K.</strong><p style="font-size:13px;color:#6d7175;margin:4px 0;">Le chapeau est encore disponible ?</p><input id="quick-input" placeholder="Répondre..." style="width:100%;padding:10px;margin-top:8px;border:1px solid #ccc;border-radius:4px;background:white;color:black;"><button onclick="alert('Message envoyé !')" style="background:#008060;color:white;border:none;padding:8px 14px;margin-top:8px;border-radius:4px;cursor:pointer;">Envoyer</button></div>`;
+    container.innerHTML = `
+        <h2 style="color:#1a1a1a;font-family:sans-serif;margin-bottom:15px;">💬 Messagerie</h2>
+        <div style="background:white;border:1px solid #e1e3e5;border-radius:8px;padding:15px;text-align:left;font-family:sans-serif;">
+            <strong style="color:#1a1a1a;">Ranaivo K.</strong>
+            <p style="font-size:13px;color:#6d7175;margin:6px 0 12px 0;">Le chapeau est encore disponible ?</p>
+            <div style="display:flex;gap:8px;">
+                <input id="quick-input" placeholder="Écrire votre réponse..." style="flex:1;padding:10px;border:1px solid #babfc3;border-radius:6px;font-size:14px;background:white;color:black;">
+                <button onclick="alert('Message envoyé !');document.getElementById('quick-input').value='';" style="background:#008060;color:white;border:none;padding:10px 16px;border-radius:6px;font-weight:bold;cursor:pointer;">Envoyer</button>
+            </div>
+        </div>
+    `;
 }
 
-// Initialisations au chargement
-document.addEventListener('DOMContentLoaded', () => {
+// Lancement automatique au chargement de la page
+window.addEventListener('load', () => {
     initNotifications();
-    setupCloche();
     
-    // Écoute du bouton messagerie du menu du bas
-    const msgBtn = document.querySelector('.fa-comments')?.parentElement;
-    if (msgBtn) {
-        msgBtn.addEventListener('click', () => setTimeout(buildChatList, 50));
+    // Attacher l'événement au bouton messagerie du menu inférieur s'il existe
+    const bottomMsgTab = document.querySelector('.fa-comments')?.parentElement;
+    if (bottomMsgTab) {
+        bottomMsgTab.addEventListener('click', function(e) {
+            e.preventDefault();
+            buildChatList();
+        });
     }
 });
-
-// Injection HTML du conteneur de notifications en arrière-plan
-document.body.insertAdjacentHTML('beforeend', `
-    <div id="notif-panel" style="position:fixed;top:65px;right:10px;width:300px;max-width:calc(100vw - 20px);background:white;z-index:99999;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:none;font-family:sans-serif;">
-        <div style="padding:10px 12px;font-weight:bold;border-bottom:1px solid #eee;display:flex;justify-content:space-between;background:#f8f9fa;color:#333;">
-            <span>Notifications</span>
-            <span onclick="markAllRead()" style="color:#008060;font-size:12px;cursor:pointer;">Tout marquer lu</span>
-        </div>
-        <div id="notif-list" style="max-height:300px;overflow-y:auto;"></div>
-    </div>
-`);
-
 </script>
 </body>
 </html>
-                                  
