@@ -810,58 +810,78 @@
             
             }
                                   
-// RESTAURATION THÈME & INITIALISATION DES COMPTEURS
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme) {
-    const t = JSON.parse(savedTheme);
-    if (typeof applyTheme === 'function') applyTheme(t.couleur, t.nom);
-    if (t.banniere) {
-        const prev = document.getElementById('theme-preview');
-        if (prev) {
-            prev.src = t.banniere;
-            prev.style.display = 'block';
+// ============================================================================
+// RESTAURATION DU THÈME & NETTOYAGE CRITIQUE (DANS LE DOM CONTENT LOADED)
+// ============================================================================
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        const t = JSON.parse(savedTheme);
+        if (typeof applyTheme === 'function') applyTheme(t.couleur, t.nom);
+        if (t.banniere) {
+            const prev = document.getElementById('theme-preview');
+            if (prev) {
+                prev.src = t.banniere;
+                prev.style.display = 'block';
+            }
         }
     }
-}
 
-// Configuration de la cloche de notification
-const bellBtn = document.getElementById('notif-bell');
-if (bellBtn) {
-    bellBtn.innerHTML = '<i class="fa-solid fa-bell"></i><span id="notif-badge" style="position:absolute;top:-4px;right:-4px;background:#e53e3e;color:white;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,0.2);">0</span>';
-    bellBtn.setAttribute('onclick', 'toggleNotifPanel()');
-}
+    // Forcer la cloche codée en dur dans ton HTML à s'activer au clic
+    const existingBell = document.getElementById('notif-bell') || document.querySelector('.fa-bell')?.parentElement;
+    if (existingBell) {
+        existingBell.setAttribute('onclick', 'toggleNotifPanel()');
+        existingBell.style.cursor = 'pointer';
+        existingBell.id = 'notif-bell'; // Sécurité ID
+        
+        // Configuration ou création du badge rouge interne
+        let existingBadge = existingBell.querySelector('span') || existingBell.querySelector('.badge');
+        if (existingBadge) {
+            existingBadge.id = 'notif-badge';
+        } else {
+            existingBell.style.position = 'relative';
+            existingBell.insertAdjacentHTML('beforeend', '<span id="notif-badge" style="position:absolute;top:-4px;right:-4px;background:#e53e3e;color:white;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,0.2);">0</span>');
+        }
+    }
 
-// Initialisation et mise à jour des badges au démarrage
-initNotifications();
-if (typeof updateMsgBadge === 'function') updateMsgBadge();
+    // Liaison des clics sur la barre de navigation du bas pour recharger la messagerie
+    const msgTab = document.getElementById('menu-messages') || document.querySelector('.fa-comments')?.parentElement;
+    if (msgTab) {
+        msgTab.addEventListener('click', () => {
+            setTimeout(buildChatList, 50);
+        });
+    }
 
-}); // Fermeture correcte du DOMContentLoaded existant
+    // Initialisation immédiate des compteurs
+    initNotifications();
+    updateMsgBadge();
+
+}); // <-- C'EST ICI QUE SE FERME CORRECTEMENT LA FONCTION PRINCIPALE DE TON APP !
 
 // ============================================================================
-// INJECTION DE L'INTERFACE DES NOTIFICATIONS
+// INJECTION DU PANNEAU DE NOTIFICATIONS (EXTÉRIEUR ET ACCESSIBLE)
 // ============================================================================
-document.body.insertAdjacentHTML('beforeend', `
-    <div id="notif-panel" class="hidden" style="position:fixed;top:60px;right:0;width:320px;max-width:100vw;background:white;z-index:500;border-radius:0 0 12px 12px;box-shadow:0 8px 24px rgba(0,0,0,0.15);max-height:400px;overflow-y:auto;font-family:sans-serif;">
-        <div style="padding:12px 16px;font-weight:700;border-bottom:1px solid #e1e3e5;display:flex;justify-content:space-between;color:#1a1a1a;">
-            <span>Notifications</span>
-            <span onclick="markAllRead()" style="color:#008060;font-size:12px;cursor:pointer;font-weight:500;">Tout marquer lu</span>
+if (!document.getElementById('notif-panel')) {
+    document.body.insertAdjacentHTML('beforeend', `
+        <div id="notif-panel" style="position:fixed;top:65px;right:10px;width:320px;max-width:calc(100vw - 20px);background:white;z-index:9999;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.25);max-height:380px;overflow-y:auto;font-family:sans-serif;display:none;">
+            <div style="padding:14px 16px;font-weight:700;border-bottom:1px solid #e1e3e5;display:flex;justify-content:space-between;align-items:center;color:#1a1a1a;">
+                <span style="font-size:15px;">Notifications</span>
+                <span onclick="markAllRead()" style="color:#008060;font-size:12px;cursor:pointer;font-weight:600;">Tout marquer lu</span>
+            </div>
+            <div id="notif-list"></div>
         </div>
-        <div id="notif-list"></div>
-    </div>
-`);
+    `);
+}
 
 // ============================================================================
-// GESTION DES NOTIFICATIONS SAUVEGARDÉES (ANTI-RELOAD)
+// LOGIQUE DES NOTIFICATIONS AVEC STOCKAGE PRIVE (ANTI-RELOAD)
 // ============================================================================
 let notifications = [];
 
 function initNotifications() {
     const localNotifs = localStorage.getItem('me_tsena_notifs');
-    
     if (localNotifs) {
         notifications = JSON.parse(localNotifs);
     } else {
-        // Base par défaut si première visite
         notifications = [
             { id: 1, titre: "💬 Nouveau message", corps: "Ranaivo K. : Le chapeau est encore disponible ?", heure: "Il y a 5 min", lue: false, action: "messages" },
             { id: 2, titre: "🛍️ Nouvelle commande", corps: "Commande #ME-9084 reçue — 22.0 MEC", heure: "Il y a 1h", lue: false, action: "orders" },
@@ -878,9 +898,13 @@ function sauvegarderNotifications() {
 
 function toggleNotifPanel() {
     const panel = document.getElementById('notif-panel');
-    if (panel) {
-        panel.classList.toggle('hidden');
+    if (!panel) return;
+    
+    if (panel.style.display === 'none' || panel.style.display === '') {
+        panel.style.display = 'block';
         renderNotifications();
+    } else {
+        panel.style.display = 'none';
     }
 }
 
@@ -889,18 +913,18 @@ function renderNotifications() {
     if (!container) return;
     
     if (notifications.length === 0) {
-        container.innerHTML = `<div style="padding:20px;text-align:center;color:#6d7175;font-size:14px;">Aucune notification</div>`;
+        container.innerHTML = `<div style="padding:24px;text-align:center;color:#6d7175;font-size:14px;">Aucune notification</div>`;
         return;
     }
 
     container.innerHTML = notifications.map(n => `
-        <div onclick="readNotif(${n.id})" style="padding:12px;border-bottom:1px solid #e1e3e5;background:${n.lue ? '#fff' : '#f0fdf4'};cursor:pointer;color:#1a1a1a;text-align:left;transition:background 0.2s;">
-            <div style="font-weight:${n.lue ? '400' : '700'};font-size:14px;display:flex;align-items:center;justify-content:between;">
+        <div onclick="readNotif(${n.id})" style="padding:14px 16px;border-bottom:1px solid #f1f2f4;background:${n.lue ? '#ffffff' : '#f4fbf7'};cursor:pointer;color:#1a1a1a;text-align:left;">
+            <div style="font-weight:${n.lue ? '500' : '700'};font-size:14px;display:flex;align-items:center;justify-content:space-between;">
                 <span>${n.titre}</span>
-                ${!n.lue ? `<span style="width:8px;height:8px;background:#22c55e;border-radius:50%;display:inline-block;margin-left:auto;"></span>` : ''}
+                ${!n.lue ? `<span style="width:7px;height:7px;background:#008060;border-radius:50%;display:inline-block;"></span>` : ''}
             </div>
-            <div style="font-size:12px;color:#6d7175;margin-top:2px;">${n.corps}</div>
-            <div style="font-size:11px;color:#aaa;margin-top:4px;">${n.heure}</div>
+            <div style="font-size:12px;color:#6d7175;margin-top:3px;line-height:1.4;">${n.corps}</div>
+            <div style="font-size:11px;color:#919699;margin-top:6px;">${n.heure}</div>
         </div>
     `).join('');
 }
@@ -912,11 +936,19 @@ function readNotif(id) {
         sauvegarderNotifications();
         updateNotifBadge();
         
-        // Ferme le panneau et redirige vers la bonne section de ton app
-        document.getElementById('notif-panel').classList.add('hidden');
-        if (typeof navTo === 'function') navTo(n.action);
+        document.getElementById('notif-panel').style.display = 'none';
         
-        // Si c'est un message, on ouvre directement la messagerie améliorée
+        if (typeof navTo === 'function') {
+            navTo(n.action);
+        } else {
+            // Repli si navTo n'est pas global
+            const view = document.getElementById('view-' + n.action);
+            if (view) {
+                document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+                view.classList.remove('hidden');
+            }
+        }
+        
         if (n.action === 'messages') {
             buildChatList();
         }
@@ -940,14 +972,14 @@ function updateNotifBadge() {
 }
 
 // ============================================================================
-// AMÉLIORATION DE LA MESSAGERIE (CHAT INTERACTIF SÉCURISÉ)
+// AMÉLIORATION DE LA MESSAGERIE (CLAVIER ANDROID FLUIDE)
 // ============================================================================
 let conversationActive = null;
 
 function buildChatList() {
     const container = document.getElementById('view-messages');
     if (!container) return;
-    container.innerHTML = `<h2><i class="fa-solid fa-comments"></i> <span>Messagerie</span></h2><div class="card" style="padding:0;"><div id="conversations-container"></div></div>`;
+    container.innerHTML = `<h2><i class="fa-solid fa-comments"></i> <span>Messagerie</span></h2><div class="card" style="padding:0;border-radius:8px;overflow:hidden;"><div id="conversations-container"></div></div>`;
     renderConversationList();
 }
 
@@ -955,7 +987,7 @@ function renderConversationList() {
     const container = document.getElementById('conversations-container');
     if (!container) return;
     
-    if (typeof conversations !== 'undefined') {
+    if (typeof conversations !== 'undefined' && conversations.length > 0) {
         conversations.forEach(c => { 
             c.couleur = c.couleur || '#008060'; 
             c.initiales = c.initiales || (c.nom ? c.nom.substring(0, 2).toUpperCase() : '??'); 
@@ -965,18 +997,21 @@ function renderConversationList() {
             const msgs = JSON.parse(localStorage.getItem('me_tsena_msgs_' + c.id)) || [];
             const dernierTxt = msgs.length > 0 ? msgs[msgs.length - 1].texte : c.dernier;
             return `
-                <div class="chat-item" onclick="ouvrirConversation(${c.id})" style="display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid var(--border);cursor:pointer;text-align:left;">
-                    <div style="width:40px;height:40px;border-radius:50%;background:${c.couleur};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;">${c.initiales}</div>
+                <div class="chat-item" onclick="ouvrirConversation(${c.id})" style="display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid #e1e3e5;cursor:pointer;text-align:left;">
+                    <div style="width:42px;height:42px;border-radius:50%;background:${c.couleur};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;flex-shrink:0;">${c.initiales}</div>
                     <div style="flex:1;overflow:hidden;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;"><strong>${c.nom}</strong><small style="color:var(--gray);font-size:11px;">${c.heure}</small></div>
-                        <p style="font-size:13px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:2px 0 0 0;">${dernierTxt}</p>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <strong style="color:#1a1a1a;font-size:14px;">${c.nom}</strong>
+                            <small style="color:#6d7175;font-size:11px;">${c.heure}</small>
+                        </div>
+                        <p style="font-size:13px;color:#6d7175;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:3px 0 0 0;">${dernierTxt}</p>
                     </div>
-                    ${c.nonLu > 0 ? `<span style="background:#e53e3e;color:white;font-size:10px;border-radius:10px;padding:2px 6px;font-weight:bold;">${c.nonLu}</span>` : ''}
+                    ${c.nonLu > 0 ? `<span style="background:#e53e3e;color:white;font-size:10px;border-radius:10px;padding:2px 6px;font-weight:bold;flex-shrink:0;">${c.nonLu}</span>` : ''}
                 </div>
             `;
         }).join('');
     } else {
-        container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--gray);">Aucune conversation active.</div>`;
+        container.innerHTML = `<div style="padding:30px;text-align:center;color:#6d7175;">Aucune conversation active.</div>`;
     }
 }
 
@@ -992,19 +1027,19 @@ function ouvrirConversation(id) {
     if (!viewMessages) return;
 
     viewMessages.innerHTML = `
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:10px;">
-            <button onclick="buildChatList()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);">←</button>
-            <div style="width:38px;height:38px;border-radius:50%;background:${conv.couleur};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;">${conv.initiales}</div>
-            <strong style="font-size:16px;">${conv.nom}</strong>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid #e1e3e5;padding-bottom:12px;">
+            <button onclick="buildChatList()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a1a1a;padding:0 4px;">←</button>
+            <div style="width:38px;height:38px;border-radius:50%;background:${conv.couleur};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;">${conv.initiales}</div>
+            <strong style="font-size:16px;color:#1a1a1a;">${conv.nom}</strong>
         </div>
-        <div id="chat-bubbles" style="display:flex;flex-direction:column;gap:8px;min-height:300px;max-height:50vh;overflow-y:auto;padding:10px;background:#f8f9fa;border-radius:8px;"></div>
-        <div style="display:flex;gap:8px;margin-top:12px;">
-            <input id="chat-input" type="text" class="form-control" placeholder="Écrire un message à ${conv.nom}..." style="flex:1;padding:10px;border-radius:20px;border:1px solid var(--border);">
-            <button onclick="envoyerMessage()" style="background:#008060;color:white;border:none;width:40px;height:40px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding-left:3px;">➤</button>
+        <div id="chat-bubbles" style="display:flex;flex-direction:column;gap:10px;min-height:280px;max-height:45vh;overflow-y:auto;padding:12px;background:#f6f6f7;border-radius:8px;border:1px solid #e1e3e5;"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;align-items:center;">
+            <input id="chat-input" type="text" placeholder="Écrire un message..." style="flex:1;padding:12px 16px;border-radius:24px;border:1px solid #babfc3;font-size:14px;background:white;color:#1a1a1a;">
+            <button onclick="envoyerMessage()" style="background:#008060;color:white;border:none;width:42px;height:42px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding-left:3px;box-shadow:0 2px 4px rgba(0,0,0,0.1);flex-shrink:0;">➤</button>
         </div>
     `;
 
-    // Écouteur de touche Entrée pour envoyer sur mobile
+    // Détection de la touche Entrée pour le clavier Android
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') envoyerMessage();
     });
@@ -1022,9 +1057,9 @@ function renderChatBubbles(id) {
     if (!container) return;
     
     container.innerHTML = msgs.map(m => `
-        <div style="display:flex;justify-content:${m.moi ? 'flex-end' : 'flex-start'};margin-bottom:4px;">
-            <div style="max-width:75%;background:${m.moi ? '#008060' : 'white'};color:${m.moi ? 'white' : '#1a1a1a'};padding:10px 14px;border-radius:${m.moi ? '16px 16px 4px 16px' : '16px 16px 16px 4px'};font-size:14px;text-align:left;box-shadow:0 1px 2px rgba(0,0,0,0.05);">
-                <div>${m.texte}</div>
+        <div style="display:flex;justify-content:${m.moi ? 'flex-end' : 'flex-start'};">
+            <div style="max-width:80%;background:${m.moi ? '#008060' : 'white'};color:${m.moi ? 'white' : '#1a1a1a'};padding:10px 14px;border-radius:${m.moi ? '16px 16px 4px 16px' : '16px 16px 16px 4px'};font-size:14px;line-height:1.4;text-align:left;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+                <div style="word-break:break-word;">${m.texte}</div>
                 <div style="font-size:10px;opacity:0.6;margin-top:4px;text-align:right;">${m.heure}</div>
             </div>
         </div>
@@ -1045,6 +1080,10 @@ function envoyerMessage() {
     
     input.value = '';
     renderChatBubbles(conversationActive);
+    
+    if (document.getElementById('conversations-container')) {
+        renderConversationList();
+    }
 }
 
 function updateMsgBadge() {
