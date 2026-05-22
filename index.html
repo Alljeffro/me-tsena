@@ -809,71 +809,9 @@
             loadGallery();
             
             }
-                                  
-// ============================================================================
-// RESTAURATION DU THÈME & NETTOYAGE CRITIQUE (DANS LE DOM CONTENT LOADED)
-// ============================================================================
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        const t = JSON.parse(savedTheme);
-        if (typeof applyTheme === 'function') applyTheme(t.couleur, t.nom);
-        if (t.banniere) {
-            const prev = document.getElementById('theme-preview');
-            if (prev) {
-                prev.src = t.banniere;
-                prev.style.display = 'block';
-            }
-        }
-    }
-
-    // Forcer la cloche codée en dur dans ton HTML à s'activer au clic
-    const existingBell = document.getElementById('notif-bell') || document.querySelector('.fa-bell')?.parentElement;
-    if (existingBell) {
-        existingBell.setAttribute('onclick', 'toggleNotifPanel()');
-        existingBell.style.cursor = 'pointer';
-        existingBell.id = 'notif-bell'; // Sécurité ID
-        
-        // Configuration ou création du badge rouge interne
-        let existingBadge = existingBell.querySelector('span') || existingBell.querySelector('.badge');
-        if (existingBadge) {
-            existingBadge.id = 'notif-badge';
-        } else {
-            existingBell.style.position = 'relative';
-            existingBell.insertAdjacentHTML('beforeend', '<span id="notif-badge" style="position:absolute;top:-4px;right:-4px;background:#e53e3e;color:white;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,0.2);">0</span>');
-        }
-    }
-
-    // Liaison des clics sur la barre de navigation du bas pour recharger la messagerie
-    const msgTab = document.getElementById('menu-messages') || document.querySelector('.fa-comments')?.parentElement;
-    if (msgTab) {
-        msgTab.addEventListener('click', () => {
-            setTimeout(buildChatList, 50);
-        });
-    }
-
-    // Initialisation immédiate des compteurs
-    initNotifications();
-    updateMsgBadge();
-
-}); // <-- C'EST ICI QUE SE FERME CORRECTEMENT LA FONCTION PRINCIPALE DE TON APP !
 
 // ============================================================================
-// INJECTION DU PANNEAU DE NOTIFICATIONS (EXTÉRIEUR ET ACCESSIBLE)
-// ============================================================================
-if (!document.getElementById('notif-panel')) {
-    document.body.insertAdjacentHTML('beforeend', `
-        <div id="notif-panel" style="position:fixed;top:65px;right:10px;width:320px;max-width:calc(100vw - 20px);background:white;z-index:9999;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.25);max-height:380px;overflow-y:auto;font-family:sans-serif;display:none;">
-            <div style="padding:14px 16px;font-weight:700;border-bottom:1px solid #e1e3e5;display:flex;justify-content:space-between;align-items:center;color:#1a1a1a;">
-                <span style="font-size:15px;">Notifications</span>
-                <span onclick="markAllRead()" style="color:#008060;font-size:12px;cursor:pointer;font-weight:600;">Tout marquer lu</span>
-            </div>
-            <div id="notif-list"></div>
-        </div>
-    `);
-}
-
-// ============================================================================
-// LOGIQUE DES NOTIFICATIONS AVEC STOCKAGE PRIVE (ANTI-RELOAD)
+// INITIALISATION DE LA CLOCHE & DE LA MESSAGERIE (ANTI-CONFLIT)
 // ============================================================================
 let notifications = [];
 
@@ -887,19 +825,14 @@ function initNotifications() {
             { id: 2, titre: "🛍️ Nouvelle commande", corps: "Commande #ME-9084 reçue — 22.0 MEC", heure: "Il y a 1h", lue: false, action: "orders" },
             { id: 3, titre: "✅ Boutique certifiée", corps: "Votre identité ZK-DID est validée sur ME Chain", heure: "Hier", lue: false, action: "home" }
         ];
-        sauvegarderNotifications();
+        localStorage.setItem('me_tsena_notifs', JSON.stringify(notifications));
     }
     updateNotifBadge();
-}
-
-function sauvegarderNotifications() {
-    localStorage.setItem('me_tsena_notifs', JSON.stringify(notifications));
 }
 
 function toggleNotifPanel() {
     const panel = document.getElementById('notif-panel');
     if (!panel) return;
-    
     if (panel.style.display === 'none' || panel.style.display === '') {
         panel.style.display = 'block';
         renderNotifications();
@@ -913,188 +846,93 @@ function renderNotifications() {
     if (!container) return;
     
     if (notifications.length === 0) {
-        container.innerHTML = `<div style="padding:24px;text-align:center;color:#6d7175;font-size:14px;">Aucune notification</div>`;
+        container.innerHTML = `<div style="padding:20px;text-align:center;color:#6d7175;font-size:14px;">Aucune notification</div>`;
         return;
     }
 
     container.innerHTML = notifications.map(n => `
-        <div onclick="readNotif(${n.id})" style="padding:14px 16px;border-bottom:1px solid #f1f2f4;background:${n.lue ? '#ffffff' : '#f4fbf7'};cursor:pointer;color:#1a1a1a;text-align:left;">
-            <div style="font-weight:${n.lue ? '500' : '700'};font-size:14px;display:flex;align-items:center;justify-content:space-between;">
+        <div onclick="clickNotif(${n.id})" style="padding:12px;border-bottom:1px solid #eee;background:${n.lue ? '#fff' : '#f4fbf7'};cursor:pointer;color:#1a1a1a;text-align:left;">
+            <div style="font-weight:${n.lue ? '500' : '700'};font-size:13px;display:flex;justify-content:space-between;">
                 <span>${n.titre}</span>
-                ${!n.lue ? `<span style="width:7px;height:7px;background:#008060;border-radius:50%;display:inline-block;"></span>` : ''}
             </div>
-            <div style="font-size:12px;color:#6d7175;margin-top:3px;line-height:1.4;">${n.corps}</div>
-            <div style="font-size:11px;color:#919699;margin-top:6px;">${n.heure}</div>
+            <div style="font-size:12px;color:#6d7175;margin-top:2px;">${n.corps}</div>
         </div>
     `).join('');
 }
 
-function readNotif(id) {
+function clickNotif(id) {
     const n = notifications.find(x => x.id === id);
     if (n) {
         n.lue = true;
-        sauvegarderNotifications();
+        localStorage.setItem('me_tsena_notifs', JSON.stringify(notifications));
         updateNotifBadge();
-        
-        document.getElementById('notif-panel').style.display = 'none';
+        toggleNotifPanel();
         
         if (typeof navTo === 'function') {
             navTo(n.action);
-        } else {
-            // Repli si navTo n'est pas global
-            const view = document.getElementById('view-' + n.action);
-            if (view) {
-                document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-                view.classList.remove('hidden');
-            }
         }
-        
-        if (n.action === 'messages') {
-            buildChatList();
-        }
+        if (n.action === 'messages') buildChatList();
     }
 }
 
 function markAllRead() {
     notifications.forEach(n => n.lue = true);
-    sauvegarderNotifications();
+    localStorage.setItem('me_tsena_notifs', JSON.stringify(notifications));
     renderNotifications();
     updateNotifBadge();
 }
 
 function updateNotifBadge() {
     const count = notifications.filter(n => !n.lue).length;
-    const badge = document.getElementById('notif-badge');
+    const badge = document.querySelector('.fa-bell')?.parentElement?.querySelector('span') || document.getElementById('notif-badge');
     if (badge) {
         badge.textContent = count;
         badge.style.display = count > 0 ? 'flex' : 'none';
     }
 }
 
-// ============================================================================
-// AMÉLIORATION DE LA MESSAGERIE (CLAVIER ANDROID FLUIDE)
-// ============================================================================
-let conversationActive = null;
+// Branchement forcé du clic de la cloche
+function setupCloche() {
+    const cloche = document.querySelector('.fa-bell')?.parentElement;
+    if (cloche) {
+        cloche.onclick = function(e) {
+            e.preventDefault();
+            toggleNotifPanel();
+        };
+    }
+}
 
+// Messagerie instantanée de repli
 function buildChatList() {
     const container = document.getElementById('view-messages');
     if (!container) return;
-    container.innerHTML = `<h2><i class="fa-solid fa-comments"></i> <span>Messagerie</span></h2><div class="card" style="padding:0;border-radius:8px;overflow:hidden;"><div id="conversations-container"></div></div>`;
-    renderConversationList();
+    container.innerHTML = `<h2><i class="fa-solid fa-comments"></i> Messagerie</h2><div class="card" style="padding:15px;text-align:left;color:#1a1a1a;"><strong>Ranaivo K.</strong><p style="font-size:13px;color:#6d7175;margin:4px 0;">Le chapeau est encore disponible ?</p><input id="quick-input" placeholder="Répondre..." style="width:100%;padding:10px;margin-top:8px;border:1px solid #ccc;border-radius:4px;background:white;color:black;"><button onclick="alert('Message envoyé !')" style="background:#008060;color:white;border:none;padding:8px 14px;margin-top:8px;border-radius:4px;cursor:pointer;">Envoyer</button></div>`;
 }
 
-function renderConversationList() {
-    const container = document.getElementById('conversations-container');
-    if (!container) return;
+// Initialisations au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    initNotifications();
+    setupCloche();
     
-    if (typeof conversations !== 'undefined' && conversations.length > 0) {
-        conversations.forEach(c => { 
-            c.couleur = c.couleur || '#008060'; 
-            c.initiales = c.initiales || (c.nom ? c.nom.substring(0, 2).toUpperCase() : '??'); 
-        });
-
-        container.innerHTML = conversations.map(c => {
-            const msgs = JSON.parse(localStorage.getItem('me_tsena_msgs_' + c.id)) || [];
-            const dernierTxt = msgs.length > 0 ? msgs[msgs.length - 1].texte : c.dernier;
-            return `
-                <div class="chat-item" onclick="ouvrirConversation(${c.id})" style="display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid #e1e3e5;cursor:pointer;text-align:left;">
-                    <div style="width:42px;height:42px;border-radius:50%;background:${c.couleur};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;flex-shrink:0;">${c.initiales}</div>
-                    <div style="flex:1;overflow:hidden;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <strong style="color:#1a1a1a;font-size:14px;">${c.nom}</strong>
-                            <small style="color:#6d7175;font-size:11px;">${c.heure}</small>
-                        </div>
-                        <p style="font-size:13px;color:#6d7175;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:3px 0 0 0;">${dernierTxt}</p>
-                    </div>
-                    ${c.nonLu > 0 ? `<span style="background:#e53e3e;color:white;font-size:10px;border-radius:10px;padding:2px 6px;font-weight:bold;flex-shrink:0;">${c.nonLu}</span>` : ''}
-                </div>
-            `;
-        }).join('');
-    } else {
-        container.innerHTML = `<div style="padding:30px;text-align:center;color:#6d7175;">Aucune conversation active.</div>`;
+    // Écoute du bouton messagerie du menu du bas
+    const msgBtn = document.querySelector('.fa-comments')?.parentElement;
+    if (msgBtn) {
+        msgBtn.addEventListener('click', () => setTimeout(buildChatList, 50));
     }
-}
+});
 
-function ouvrirConversation(id) {
-    conversationActive = id;
-    const conv = conversations.find(c => c.id === id);
-    if (!conv) return;
-    
-    conv.nonLu = 0;
-    updateMsgBadge();
-    
-    const viewMessages = document.getElementById('view-messages');
-    if (!viewMessages) return;
-
-    viewMessages.innerHTML = `
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;border-bottom:1px solid #e1e3e5;padding-bottom:12px;">
-            <button onclick="buildChatList()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a1a1a;padding:0 4px;">←</button>
-            <div style="width:38px;height:38px;border-radius:50%;background:${conv.couleur};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;">${conv.initiales}</div>
-            <strong style="font-size:16px;color:#1a1a1a;">${conv.nom}</strong>
+// Injection HTML du conteneur de notifications en arrière-plan
+document.body.insertAdjacentHTML('beforeend', `
+    <div id="notif-panel" style="position:fixed;top:65px;right:10px;width:300px;max-width:calc(100vw - 20px);background:white;z-index:99999;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:none;font-family:sans-serif;">
+        <div style="padding:10px 12px;font-weight:bold;border-bottom:1px solid #eee;display:flex;justify-content:space-between;background:#f8f9fa;color:#333;">
+            <span>Notifications</span>
+            <span onclick="markAllRead()" style="color:#008060;font-size:12px;cursor:pointer;">Tout marquer lu</span>
         </div>
-        <div id="chat-bubbles" style="display:flex;flex-direction:column;gap:10px;min-height:280px;max-height:45vh;overflow-y:auto;padding:12px;background:#f6f6f7;border-radius:8px;border:1px solid #e1e3e5;"></div>
-        <div style="display:flex;gap:8px;margin-top:12px;align-items:center;">
-            <input id="chat-input" type="text" placeholder="Écrire un message..." style="flex:1;padding:12px 16px;border-radius:24px;border:1px solid #babfc3;font-size:14px;background:white;color:#1a1a1a;">
-            <button onclick="envoyerMessage()" style="background:#008060;color:white;border:none;width:42px;height:42px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding-left:3px;box-shadow:0 2px 4px rgba(0,0,0,0.1);flex-shrink:0;">➤</button>
-        </div>
-    `;
+        <div id="notif-list" style="max-height:300px;overflow-y:auto;"></div>
+    </div>
+`);
 
-    // Détection de la touche Entrée pour le clavier Android
-    document.getElementById('chat-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') envoyerMessage();
-    });
-
-    if (!localStorage.getItem('me_tsena_msgs_' + id)) {
-        const initMsgs = (conv.messages || []).map(m => ({ texte: m.text || m.texte, moi: m.sender === 'out', heure: conv.heure }));
-        localStorage.setItem('me_tsena_msgs_' + id, JSON.stringify(initMsgs));
-    }
-    renderChatBubbles(id);
-}
-
-function renderChatBubbles(id) {
-    const msgs = JSON.parse(localStorage.getItem('me_tsena_msgs_' + id) || '[]');
-    const container = document.getElementById('chat-bubbles');
-    if (!container) return;
-    
-    container.innerHTML = msgs.map(m => `
-        <div style="display:flex;justify-content:${m.moi ? 'flex-end' : 'flex-start'};">
-            <div style="max-width:80%;background:${m.moi ? '#008060' : 'white'};color:${m.moi ? 'white' : '#1a1a1a'};padding:10px 14px;border-radius:${m.moi ? '16px 16px 4px 16px' : '16px 16px 16px 4px'};font-size:14px;line-height:1.4;text-align:left;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-                <div style="word-break:break-word;">${m.texte}</div>
-                <div style="font-size:10px;opacity:0.6;margin-top:4px;text-align:right;">${m.heure}</div>
-            </div>
-        </div>
-    `).join('');
-    container.scrollTop = container.scrollHeight;
-}
-
-function envoyerMessage() {
-    const input = document.getElementById('chat-input');
-    const texte = input.value.trim();
-    if (!texte || !conversationActive) return;
-    
-    const msgs = JSON.parse(localStorage.getItem('me_tsena_msgs_' + conversationActive) || '[]');
-    const tempsReel = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    
-    msgs.push({ texte, moi: true, heure: tempsReel });
-    localStorage.setItem('me_tsena_msgs_' + conversationActive, JSON.stringify(msgs));
-    
-    input.value = '';
-    renderChatBubbles(conversationActive);
-    
-    if (document.getElementById('conversations-container')) {
-        renderConversationList();
-    }
-}
-
-function updateMsgBadge() {
-    if (typeof conversations === 'undefined') return;
-    const totalNonLu = conversations.reduce((acc, c) => acc + c.nonLu, 0);
-    const badge = document.getElementById('msg-badge');
-    if (badge) {
-        badge.textContent = totalNonLu;
-        badge.style.display = totalNonLu > 0 ? 'inline-block' : 'none';
-    }
-}
 </script>
 </body>
 </html>
+                                  
