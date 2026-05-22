@@ -44,6 +44,8 @@
             font-weight: bold; cursor: pointer; overflow: hidden;
         }
         .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+        
+        #notif-bell { position: relative; font-size: 20px; color: var(--gray); cursor: pointer; background: none; border: none; padding: 4px; }
 
         /* --- SIDEBAR --- */
         .sidebar {
@@ -91,7 +93,7 @@
         .btn-primary { background: var(--primary); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--dark); display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; }
 
-        /* PARAMÈTRES / LANGUES / PROFIL */
+        /* PARAMÈTRES / LANGUES */
         .lang-selector { display: flex; gap: 10px; margin-top: 10px; }
         .lang-btn { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: white; cursor: pointer; font-size: 13px; font-weight: 500; }
         .lang-btn.active { border-color: var(--primary); background: #e6f4ea; color: var(--primary); }
@@ -102,10 +104,20 @@
         .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
         .avatar-option { width: 100%; aspect-ratio: 1; border-radius: 50%; cursor: pointer; border: 2px solid transparent; background: #f6f6f7; }
 
-        /* LISTES DE DONNÉES */
+        /* LISTES DE DONNÉES & MESSAGERIE */
         .data-list-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
         .data-list-item:last-child { border-bottom: none; }
         .amount-positive { color: var(--success); font-weight: bold; }
+
+        .chat-user-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
+        .chat-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .chat-item:hover { background: #f1f2f4; }
+        
+        .chat-window { display: flex; flex-direction: column; height: 350px; background: #fafafa; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { max-width: 75%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.4; }
+        .bubble.in { background: #e1e3e5; align-self: flex-start; border-top-left-radius: 2px; }
+        .bubble.out { background: var(--primary); color: white; align-self: flex-end; border-top-right-radius: 2px; }
 
         /* BARRE DE NAVIGATION INFÉRIEURE FIXE */
         .bottom-nav {
@@ -135,6 +147,10 @@
             <div class="menu-item active" id="menu-home" onclick="navTo('home')"><i class="fa-solid fa-house"></i> <span class="t-home">Accueil</span></div>
             <div class="menu-item" id="menu-orders" onclick="navTo('orders')"><i class="fa-solid fa-cart-shopping"></i> <span class="t-orders">Commandes</span></div>
             <div class="menu-item" id="menu-products" onclick="navTo('products')"><i class="fa-solid fa-box"></i> <span class="t-products">Produits</span></div>
+            <div class="menu-item" id="menu-messages" onclick="navTo('messages')">
+                <i class="fa-solid fa-comments"></i> <span class="t-messages">Messages</span>
+                <span id="msg-badge" style="background:#e53e3e; color:white; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:auto;">3</span>
+            </div>
             <div class="menu-item" id="menu-clients" onclick="navTo('clients')"><i class="fa-solid fa-users"></i> <span class="t-clients">Clients</span></div>
             <div class="menu-item" id="menu-marketing" onclick="navTo('marketing')"><i class="fa-solid fa-bullhorn"></i> <span class="t-marketing">Marketing</span></div>
             <div class="menu-item" id="menu-discounts" onclick="navTo('discounts')"><i class="fa-solid fa-tag"></i> <span class="t-discounts">Réductions</span></div>
@@ -155,6 +171,7 @@
             <span style="font-weight: 700; font-size: 18px; color: var(--primary);">ME Tsena</span>
         </div>
         <div class="header-actions">
+            <button id="notif-bell"></button>
             <div class="badge">MEC: 1,250.00</div>
             <div class="avatar-circle" id="headerAvatar" onclick="navTo('settings')">
                 <span id="initials">MB</span>
@@ -204,20 +221,28 @@
 
             <div id="product-form-card" class="card hidden">
                 <h3 style="font-size:15px; margin-bottom:12px;">Nouveau Produit</h3>
-                <div class="form-group"><label>Nom du produit</label><input type="text" id="p-name" class="form-control"></div>
-                <div class="form-group"><label>Prix en MEC</label><input type="number" id="p-price" class="form-control" step="0.1"></div>
+                <div class="form-group"><label>Nom du produit</label><input type="text" id="input-produit-nom" class="form-control"></div>
+                <div class="form-group"><label>Prix en MEC</label><input type="number" id="input-produit-prix" class="form-control" step="0.1"></div>
                 <div class="form-group">
                     <label>Catégorie</label>
-                    <select id="p-category" class="form-control">
+                    <select id="input-produit-categorie" class="form-control">
                         <option value="Mode">Mode</option>
                         <option value="Artisanat">Artisanat</option>
                         <option value="Alimentation">Alimentation</option>
                         <option value="NFT">NFT</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Description</label><textarea id="p-desc" class="form-control" rows="2"></textarea></div>
-                <div class="form-group"><label>URL de l'image</label><input type="text" id="p-img" class="form-control" placeholder="https://..."></div>
-                <button class="btn btn-primary" onclick="saveProduct()">Publier sur ME Chain</button>
+                <div class="form-group"><label>Description</label><textarea id="input-produit-desc" class="form-control" rows="2"></textarea></div>
+                <div class="form-group"><label>URL de l'image</label><input type="text" id="input-produit-image-url" class="form-control" placeholder="https://..."></div>
+                
+                <p style="text-align:center; color:#999; font-size:12px;">— ou —</p>
+                <label class="btn btn-outline" style="cursor:pointer; margin-top:5px; margin-bottom:5px;">
+                    <i class="fa-solid fa-upload"></i> Choisir depuis mon téléphone
+                    <input type="file" id="input-produit-image-file" accept="image/*" class="hidden" onchange="previewProductImage(event)">
+                </label>
+                <img id="product-image-preview" src="" style="width:100%; border-radius:8px; margin-top:8px; display:none; max-height:150px; object-fit:cover;">
+                
+                <button class="btn btn-primary" style="margin-top:12px;" onclick="saveProduct()">Publier sur ME Chain</button>
             </div>
 
             <div class="card" id="products-list-container">
@@ -235,6 +260,31 @@
                 <div class="data-list-item">
                     <div>Jessica M.<br><small style="color:var(--gray);">0x3a11...942b</small></div>
                     <span class="badge">1 robe</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-messages" class="view-section hidden">
+            <h2><i class="fa-solid fa-comments"></i> <span>Messagerie</span></h2>
+            
+            <div id="chat-list-view" class="card" style="padding:0;">
+                <div id="conversations-container"></div>
+            </div>
+
+            <div id="chat-box-view" class="card hidden" style="padding:15px;">
+                <button class="btn btn-outline" style="width:auto; padding:6px 12px; font-size:12px; margin-bottom:12px;" onclick="backToChatList()">
+                    <i class="fa-solid fa-arrow-left"></i> Retour aux messages
+                </button>
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);">
+                    <div class="chat-user-avatar" id="active-chat-avatar"></div>
+                    <strong id="active-chat-name"></strong>
+                </div>
+                <div class="chat-window">
+                    <div class="chat-messages" id="chat-messages-body"></div>
+                    <div style="display:flex; border-top:1px solid var(--border); background:white;">
+                        <input type="text" id="chat-input-text" class="form-control" style="border:none; border-radius:0;" placeholder="Votre réponse en MEC / Message...">
+                        <button class="btn btn-primary" style="width:auto; border-radius:0;" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -344,23 +394,24 @@
                 
                 <div class="form-group">
                     <label>Couleur principale de l'interface</label>
-                    <input type="color" id="theme-color-picker" class="form-control" style="height:45px; padding:4px;" value="#008060" oninput="applyThemeColor(this.value)">
+                    <input type="color" id="theme-color-input" class="form-control" style="height:45px; padding:4px;" value="#008060">
                 </div>
 
                 <div class="form-group">
                     <label>Nom personnalisé de la boutique</label>
-                    <input type="text" id="theme-name-input" class="form-control" placeholder="Entrez le titre..." oninput="applyThemeName(this.value)">
+                    <input type="text" id="theme-name-input" class="form-control" placeholder="Entrez le titre...">
                 </div>
 
                 <div class="form-group">
                     <label>Bannière / Fond d'entête (Header)</label>
                     <label class="btn btn-outline" style="cursor:pointer; font-size:13px; padding:8px;">
                         <i class="fa-solid fa-image"></i> Choisir une image
-                        <input type="file" id="theme-bg-input" class="hidden" accept="image/*" onchange="applyThemeHeaderBg(event)">
+                        <input type="file" id="theme-bg-input" class="hidden" accept="image/*" onchange="previewThemeBanner(event)">
                     </label>
+                    <img id="theme-banner-preview" src="" style="display:none; width:100%; height:60px; object-fit:cover; border-radius:6px; margin-top:8px;">
                 </div>
 
-                <button class="btn btn-primary" style="margin-top:10px;" onclick="saveThemeSettings()"><i class="fa-solid fa-floppy-disk"></i> Sauvegarder le thème</button>
+                <button class="btn btn-primary" style="margin-top:10px;" onclick="saveTheme()"><i class="fa-solid fa-floppy-disk"></i> Sauvegarder le thème</button>
             </div>
         </div>
 
@@ -412,11 +463,12 @@
     <div class="bottom-nav">
         <button class="nav-icon-btn active" id="nav-btn-home" onclick="navTo('home')"><i class="fa-solid fa-house"></i></button>
         <button class="nav-icon-btn" id="nav-btn-products" onclick="navTo('products')"><i class="fa-solid fa-box"></i></button>
+        <button class="nav-icon-btn" id="nav-btn-messages" onclick="navTo('messages')"><i class="fa-solid fa-comments"></i></button>
         <button class="nav-icon-btn" id="nav-btn-settings" onclick="navTo('settings')"><i class="fa-solid fa-gear"></i></button>
     </div>
 
     <script>
-        // --- MULTILINGUE ---
+        // --- TRANSLATIONS ---
         const translations = {
             fr: {
                 home: "Accueil", orders: "Commandes", products: "Produits", clients: "Clients", settings: "Paramètres",
@@ -425,7 +477,7 @@
                 "next-steps": "Prochaines étapes", guide: "Personnalisez votre boutique pour attirer vos clients sur Meta Earth.",
                 "no-products": "Aucun produit pour le moment.", profile: "Profil", pseudo: "Pseudo / Nom de boutique",
                 upload: "Changer photo", "choose-avatar": "Ou choisir un avatar :", "language-title": "Langue de l'interface",
-                save: "Enregistrer les modifications", "online-store": "Boutique en ligne"
+                save: "Enregistrer les modifications", "online-store": "Boutique en ligne", messages: "Messages"
             },
             mg: {
                 home: "Fandraisana", orders: "Kaomandy", products: "Entana", clients: "Mpanjifa", settings: "Paramètres",
@@ -434,7 +486,7 @@
                 "next-steps": "Dingana manaraka", guide: "Amboary ny tsenanao mba hahazoana mpanjifa ao amin'ny Meta Earth.",
                 "no-products": "Tsy misy entana aloha hatreto.", profile: "Ny mombamomba anao", pseudo: "Anarana na Solonanarana",
                 upload: "Hanova sary", "choose-avatar": "Na mifidy sary famantarana :", "language-title": "Fisafidianana fiteny",
-                save: "Tehirizina ny fanovana", "online-store": "Hivarotra"
+                save: "Tehirizina ny fanovana", "online-store": "Hivarotra", messages: "Hafatra"
             },
             en: {
                 home: "Home", orders: "Orders", products: "Products", clients: "Customers", settings: "Settings",
@@ -443,28 +495,23 @@
                 "next-steps": "Next Steps", guide: "Customize your shop to attract your customers on Meta Earth.",
                 "no-products": "No products for now.", profile: "Profile", pseudo: "Pseudo / Shop Name",
                 upload: "Change photo", "choose-avatar": "Or choose an avatar:", "language-title": "Interface Language",
-                save: "Save changes", "online-store": "Online Store"
+                save: "Save changes", "online-store": "Online Store", messages: "Messages"
             }
         };
 
         let currentLang = localStorage.getItem('appLang') || 'fr';
         let userProfile = JSON.parse(localStorage.getItem('userProfile')) || { pseudo: 'Ma Boutique', avatar: null };
+        let imageBase64 = ''; // Variable image pour l'upload Produit
+        let activeChatId = null;
 
-        function setLang(lang) {
-            currentLang = lang;
-            localStorage.setItem('appLang', lang);
-            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-            const targetBtn = document.getElementById('btn-' + lang);
-            if (targetBtn) targetBtn.classList.add('active');
-            
-            const t = translations[lang];
-            for (const key in t) {
-                const elements = document.querySelectorAll('.t-' + key);
-                elements.forEach(el => el.innerText = t[key]);
-            }
-        }
+        // --- CONVERSATIONS SIMULÉES ---
+        const conversations = [
+            { id: 1, nom: "Ranaivo K.", avatar: "RK", dernier: "Le chapeau est encore disponible ?", heure: "10:32", nonLu: 2, messages: [{ sender: 'in', text: 'Bonjour ! Le chapeau est encore disponible ?' }] },
+            { id: 2, nom: "Jessica M.", avatar: "JM", dernier: "Merci pour la livraison rapide !", heure: "Hier", nonLu: 0, messages: [{ sender: 'in', text: 'Merci pour la livraison rapide !' }, { sender: 'out', text: 'Avec plaisir Jessica !' }] },
+            { id: 3, nom: "Toky R.", avatar: "TR", dernier: "Quel est le prix pour 3 pièces ?", heure: "Lun", nonLu: 1, messages: [{ sender: 'in', text: 'Quel est le prix pour 3 pièces ?' }] }
+        ];
 
-        // --- NAVIGATEUR DES PAGES ---
+        // --- NAVIGATION INTERNE ---
         function navTo(viewId) {
             document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
             const targetView = document.getElementById('view-' + viewId);
@@ -478,6 +525,7 @@
             const bottomBtn = document.getElementById('nav-btn-' + viewId);
             if (bottomBtn) bottomBtn.classList.add('active');
 
+            if(viewId === 'messages') buildChatList();
             closeSidebar();
         }
 
@@ -491,29 +539,49 @@
             document.getElementById('overlay').style.display = 'none';
         }
 
-        // --- SYSTEME PRODUIT ---
+        // --- GESTION PRODUITS (ZÉRO UNDEFINED + PREVIEW DEVICE) ---
         function toggleProductForm() {
             document.getElementById('product-form-card').classList.toggle('hidden');
         }
 
-        function saveProduct() {
-            const name = document.getElementById('p-name').value;
-            const price = document.getElementById('p-price').value;
-            const cat = document.getElementById('p-category').value;
-            const desc = document.getElementById('p-desc').value;
-            const img = document.getElementById('p-img').value || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=150';
+        function previewProductImage(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = e => {
+                imageBase64 = e.target.result;
+                const preview = document.getElementById('product-image-preview');
+                preview.src = imageBase64;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
 
-            if(!name || !price) return alert('Veuillez remplir le nom et le prix');
+        function saveProduct() {
+            const produit = {
+                id: Date.now(),
+                nom: document.getElementById('input-produit-nom').value,
+                prix: document.getElementById('input-produit-prix').value,
+                categorie: document.getElementById('input-produit-categorie').value,
+                description: document.getElementById('input-produit-desc').value,
+                image: document.getElementById('input-produit-image-url').value || imageBase64 || 'https://picsum.photos/seed/prod/100/100'
+            };
+
+            if(!produit.nom || !produit.prix) return alert('Veuillez spécifier un nom et un prix en MEC');
 
             const products = JSON.parse(localStorage.getItem('me_tsena_products')) || [];
-            products.push({ name, price, cat, desc, img, id: Date.now() });
+            products.push(produit);
             localStorage.setItem('me_tsena_products', JSON.stringify(products));
 
             displayProducts();
             toggleProductForm();
             
-            document.getElementById('p-name').value = ''; document.getElementById('p-price').value = '';
-            document.getElementById('p-desc').value = ''; document.getElementById('p-img').value = '';
+            // Clean
+            document.getElementById('input-produit-nom').value = '';
+            document.getElementById('input-produit-prix').value = '';
+            document.getElementById('input-produit-desc').value = '';
+            document.getElementById('input-produit-image-url').value = '';
+            document.getElementById('product-image-preview').style.display = 'none';
+            imageBase64 = '';
         }
 
         function displayProducts() {
@@ -525,17 +593,122 @@
             }
             container.innerHTML = products.map(p => `
                 <div class="data-list-item" style="align-items: flex-start; gap: 12px;">
-                    <img src="${p.img}" style="width:50px; height:50px; border-radius:6px; object-fit:cover; background:#eee;">
+                    <img src="${p.image}" style="width:50px; height:50px; border-radius:6px; object-fit:cover; background:#eee;">
                     <div style="flex:1;">
-                        <strong>${p.name}</strong> <span class="badge" style="font-size:10px; padding:2px 6px;">${p.cat}</span><br>
-                        <small style="color:var(--gray);">${p.desc || ''}</small>
+                        <strong>${p.nom}</strong> <span class="badge" style="font-size:10px; padding:2px 6px;">${p.categorie}</span><br>
+                        <small style="color:var(--gray);">${p.description || ''}</small>
                     </div>
-                    <div class="amount-positive">${p.price} MEC</div>
+                    <div class="amount-positive">${p.prix} MEC</div>
                 </div>
             `).join('');
         }
 
-        // --- COMPOSANT DE PARTAGE MARKETING ---
+        // --- CONFIGURATION ET MANAGEMENT DU THÈME ---
+        function previewThemeBanner(event) {
+            const file = event.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const prev = document.getElementById('theme-banner-preview');
+                    prev.src = e.target.result;
+                    prev.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveTheme() {
+            const couleur = document.getElementById('theme-color-input').value;
+            const nom = document.getElementById('theme-name-input').value;
+            const banniere = document.getElementById('theme-banner-preview').src || '';
+            localStorage.setItem('me_tsena_theme', JSON.stringify({ couleur, nom, banniere }));
+            applyTheme(couleur, nom, banniere);
+            alert('✅ Thème sauvegardé avec succès !');
+        }
+
+        function applyTheme(couleur, nom, banniere) {
+            document.documentElement.style.setProperty('--primary', couleur);
+            document.documentElement.style.setProperty('--primary-dark', couleur);
+            const spanLogo = document.querySelector('header .logo-area span');
+            if (spanLogo && nom) spanLogo.textContent = nom;
+            if (banniere && !banniere.includes('window.location')) {
+                document.querySelector('header').style.backgroundImage = `url(${banniere})`;
+                document.querySelector('header').style.backgroundSize = 'cover';
+                document.querySelector('header').style.backgroundPosition = 'center';
+            }
+        }
+
+        // --- ENGINE MESSAGERIE & CHAT SYSTEM ---
+        function buildChatList() {
+            document.getElementById('chat-box-view').classList.add('hidden');
+            document.getElementById('chat-list-view').classList.remove('hidden');
+            const container = document.getElementById('conversations-container');
+            container.innerHTML = conversations.map(c => `
+                <div class="chat-item" onclick="openChatWindow(${c.id})">
+                    <div class="chat-user-avatar">${c.avatar}</div>
+                    <div style="flex:1;">
+                        <div style="display:flex; justify-content:between; width:100%;">
+                            <strong style="font-size:14px; flex:1;">${c.nom}</strong>
+                            <small style="color:var(--gray); font-size:11px;">${c.heure}</small>
+                        </div>
+                        <p style="font-size:13px; color:var(--gray); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px;">${c.dernier}</p>
+                    </div>
+                    ${c.nonLu > 0 ? `<span style="background:#e53e3e; color:white; font-size:10px; border-radius:10px; padding:2px 6px; font-weight:bold;">${c.nonLu}</span>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function openChatWindow(id) {
+            activeChatId = id;
+            const conv = conversations.find(c => c.id === id);
+            conv.nonLu = 0;
+            buildChatList();
+            
+            document.getElementById('chat-list-view').classList.add('hidden');
+            document.getElementById('chat-box-view').classList.remove('hidden');
+            
+            document.getElementById('active-chat-name').innerText = conv.nom;
+            document.getElementById('active-chat-avatar').innerText = conv.avatar;
+            renderMessages();
+        }
+
+        function backToChatList() {
+            activeChatId = null;
+            buildChatList();
+        }
+
+        function renderMessages() {
+            const conv = conversations.find(c => c.id === activeChatId);
+            const body = document.getElementById('chat-messages-body');
+            body.innerHTML = conv.messages.map(m => `
+                <div class="bubble ${m.sender}">${m.text}</div>
+            `).join('');
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input-text');
+            if(!input.value.trim() || activeChatId === null) return;
+            const conv = conversations.find(c => c.id === activeChatId);
+            
+            conv.messages.push({ sender: 'out', text: input.value });
+            conv.dernier = input.value;
+            conv.heure = "À l'instant";
+            
+            input.value = '';
+            renderMessages();
+        }
+
+        // --- NOTIFICATIONS PUSH SIMULÉES ---
+        function showInAppNotification(titre, corps) {
+            const notif = document.createElement('div');
+            notif.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:white;padding:12px 20px;border-radius:12px;z-index:9999;font-size:13px;max-width:320px;box-shadow:0 4px 20px rgba(0,0,0,0.3);border-left: 4px solid var(--primary);';
+            notif.innerHTML = `<strong>${titre}</strong><br><span style="opacity:0.8">${corps}</span>`;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 4000);
+        }
+
+        // --- PARTAGE RESEAUX MARKETING ---
         function shareStore(platform) {
             const url = 'https://me-tsena.vercel.app';
             const text = 'Découvrez ma boutique ME Tsena !';
@@ -582,45 +755,7 @@
             loadGallery();
         }
 
-        // --- EDITEUR DU THEME VISUEL ---
-        function applyThemeColor(val) { document.documentElement.style.setProperty('--primary', val); }
-        function applyThemeName(val) { const title = document.querySelector('header .logo-area span'); if(title) title.innerText = val || 'ME Tsena'; }
-        function applyThemeHeaderBg(event) {
-            const file = event.target.files[0];
-            if(file) {
-                const reader = new FileReader();
-                reader.onload = function() {
-                    document.querySelector('header').style.backgroundImage = `url(${reader.result})`;
-                    document.querySelector('header').style.backgroundSize = 'cover';
-                    document.querySelector('header').style.backgroundPosition = 'center';
-                    localStorage.setItem('me_tsena_theme_bg', reader.result);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function saveThemeSettings() {
-            localStorage.setItem('me_tsena_theme_color', document.getElementById('theme-color-picker').value);
-            localStorage.setItem('me_tsena_theme_name', document.getElementById('theme-name-input').value);
-            alert('Thème sauvegardé !');
-        }
-
-        function loadThemeSettings() {
-            const savedColor = localStorage.getItem('me_tsena_theme_color') || '#008060';
-            const savedName = localStorage.getItem('me_tsena_theme_name') || 'ME Tsena';
-            const savedBg = localStorage.getItem('me_tsena_theme_bg');
-            document.getElementById('theme-color-picker').value = savedColor;
-            document.getElementById('theme-name-input').value = savedName;
-            applyThemeColor(savedColor);
-            applyThemeName(savedName);
-            if(savedBg) {
-                document.querySelector('header').style.backgroundImage = `url(${savedBg})`;
-                document.querySelector('header').style.backgroundSize = 'cover';
-                document.querySelector('header').style.backgroundPosition = 'center';
-            }
-        }
-
-        // --- PARAMÈTRES DU PROFIL ANCIEN ---
+        // --- PROFILS CONFIGURATION ---
         function updateProfile() {
             const pseudo = document.getElementById('pseudoInput').value || 'Ma Boutique';
             userProfile.pseudo = pseudo;
@@ -647,16 +782,54 @@
 
         function saveAllSettings() { localStorage.setItem('userProfile', JSON.stringify(userProfile)); alert('Paramètres enregistrés !'); }
 
-        // --- BOOTSTRAP AU CHARGEMENT ---
-        window.onload = () => {
+        function setLang(lang) {
+            currentLang = lang;
+            localStorage.setItem('appLang', lang);
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            const targetBtn = document.getElementById('btn-' + lang);
+            if (targetBtn) targetBtn.classList.add('active');
+            
+            const t = translations[lang];
+            for (const key in t) {
+                const elements = document.querySelectorAll('.t-' + key);
+                elements.forEach(el => el.innerText = t[key]);
+            }
+        }
+
+        // --- DOM CONTENT LOADED INITIALIZATION ---
+        document.addEventListener("DOMContentLoaded", () => {
+            // Configuration Initiale des Langues et Profils
             setLang(currentLang);
             document.getElementById('pseudoInput').value = userProfile.pseudo;
             updateProfile();
             if (userProfile.avatar) applyAvatar(userProfile.avatar);
+            
+            // Lancement des Affichages Dynamiques
             displayProducts();
             loadGallery();
-            loadThemeSettings();
-        };
+            
+            // Restauration Thème Persistant
+            const savedTheme = localStorage.getItem('me_tsena_theme');
+            if (savedTheme) {
+                const t = JSON.parse(savedTheme);
+                applyTheme(t.couleur, t.nom, t.banniere);
+                document.getElementById('theme-color-input').value = t.couleur;
+                document.getElementById('theme-name-input').value = t.nom;
+                if(t.banniere) {
+                    const prev = document.getElementById('theme-banner-preview');
+                    prev.src = t.banniere;
+                    prev.style.display = 'block';
+                }
+            }
+            
+            // Initialisation de la cloche de notification
+            document.getElementById('notif-bell').innerHTML = '<i class="fa-solid fa-bell"></i><span style="position:absolute;top:-4px;right:-4px;background:#e53e3e;color:white;border-radius:50%;width:16px;height:16px;font-size:10px;display:flex;align-items:center;justify-content:center;">3</span>';
+            
+            // Simulation d'une Notification Mobile Push après 3s
+            setTimeout(() => {
+                showInAppNotification('💬 Nouveau message de Ranaivo K.', 'Le chapeau est encore disponible ?');
+            }, 3000);
+        });
     </script>
 </body>
 </html>
