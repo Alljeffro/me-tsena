@@ -17,7 +17,15 @@ const translations = {
 // 1. Gestion de l'identité & Accès via ME Pass (Meta Earth Auth Simulation)
 async function connectMEPass() {
     if (!window.ethereum) {
+        // Ouvre l'application native ME Pass en tâche de fond
         window.location.href = "metasearth://mepass?action=connect&callback=https://me-tsena.vercel.app";
+        
+        // Force le chargement de l'interface Me Tsena dans Chrome
+        document.getElementById("userId").innerText = "ME-ID-Mobile-User";
+        document.getElementById("connectBtn").innerText = translations[currentLanguage].connected;
+        document.getElementById("loginPrompt").classList.add("hidden");
+        document.getElementById("mepassProfile").classList.remove("hidden");
+        document.getElementById("mallSection").classList.remove("hidden");
         return;
     }
     try {
