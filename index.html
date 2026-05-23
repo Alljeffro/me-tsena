@@ -1,69 +1,124 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Me Tsena - Meta Earth Mall</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css">
-    <!-- Ethers.js pour l'interaction avec le RollApp de ME Network -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Me Tsena - Mall Décentralisé</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="/manifest.json">
 </head>
 <body>
+
+  <div class="app-container">
+    
     <header>
-        <div class="logo">🌍 Me Tsena</div>
-        <div class="header-right">
-            <select id="langSelect" onchange="changeLanguage(this.value)">
-                <option value="fr">Français</option>
-                <option value="en">English</option>
-                <option value="mg">Malgache</option>
-            </select>
-            <button id="connectBtn" onclick="connectMEPass()">🔒 Connect ME Pass</button>
-        </div>
+      <div style="font-weight: bold; font-size: 18px;">Me Tsena</div>
+      <div>
+        <button class="btn-lang" onclick="changeLanguage('fr')">FR</button>
+        <button class="btn-lang" onclick="changeLanguage('en')">EN</button>
+        <button class="btn-lang" onclick="changeLanguage('mg')">MG</button>
+      </div>
     </header>
 
-    <main>
-        <!-- Section Identité ME Pass -->
-        <section id="identitySection" class="card">
-            <h2 class="lang-title" data-fr="Mon Passeport ME ID" data-en="My ME ID Passport" data-mg="Ny ME ID-ko">Mon Passeport ME ID</h2>
-            <div id="mepassProfile" class="hidden">
-                <p><strong>ME ID :</strong> <span id="userId">--</span></p>
-                <p><strong>KYC Status :</strong> <span id="kycStatus" class="badge">Verified On-Chain</span></p>
-                <p><strong>Solde :</strong> <span id="userBalance">0.00</span> MEC</p>
+    <main id="screen-mepass" class="screen active">
+      <h3 data-i18n="mepass_title">Passeport d'identité Web3</h3>
+      
+      <div class="mepass-card">
+        <div class="mepass-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="user-avatar">RN</div>
+            <div>
+              <div style="font-weight: bold;">Rakoto Njaka</div>
+              <div style="font-size: 11px; color: var(--text-gray);">ME ID: 0x7f3a...c91b</div>
             </div>
-            <p id="loginPrompt" class="lang-text" data-fr="Veuillez connecter votre ME Pass pour entrer dans le centre commercial." data-en="Please connect your ME Pass to enter the mall." data-mg="Ampifandray ny ME Pass-nao raha hiditra ny tsena.">Veuillez connecter votre ME Pass pour entrer dans le centre commercial.</p>
-        </section>
+          </div>
+          <div class="badge-kyc">KYC ✓</div>
+        </div>
 
-        <!-- Section Marchand & Boutiques -->
-        <section id="mallSection" class="hidden">
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('buyer')" class="lang-text" data-fr="Acheter" data-en="Shop" data-mg="Hividy">Acheter</button>
-                <button class="tab-btn" onclick="switchTab('seller')" class="lang-text" data-fr="Ma Boutique (ERC-721)" data-en="My Shop (ERC-721)" data-mg="Ny Tsenako">Ma Boutique (ERC-721)</button>
-            </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 15px;">
+          <div>
+            <span style="color: var(--text-gray);" data-i18n="level">Niveau ME Pass</span><br>
+            <strong>Level 2</strong>
+          </div>
+          <div>
+            <span style="color: var(--text-gray);" data-i18n="member_since">Membre depuis</span><br>
+            <strong>Mai 2025</strong>
+          </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 20px;">
+          <div>
+            <span style="color: var(--text-gray);">Réseau</span><br>
+            <strong>ME Network 2.0</strong>
+          </div>
+          <div>
+            <span style="color: var(--text-gray);">Statut boutique</span><br>
+            <strong data-i18n="status_buyer">Acheteur</strong>
+          </div>
+        </div>
 
-            <!-- Vue Acheteur -->
-            <div id="buyerTab" class="tab-content">
-                <h3 class="lang-title" data-fr="Boutiques Disponibles" data-en="Available Shops" data-mg="Ireo Tsena misy">Boutiques Disponibles</h3>
-                <div id="shopsGrid" class="grid">
-                    <!-- Généré dynamiquement par app.js -->
-                </div>
-            </div>
+        <div class="wallet-box">
+          <span style="font-size: 12px; color: var(--text-gray);">Wallet MEC</span>
+          <div style="font-size: 28px; font-weight: bold; margin: 5px 0;">1 240 <span style="font-size: 16px;">MEC</span></div>
+          
+          <div class="wallet-actions">
+            <div class="btn-action" data-i18n="send">🔹 Envoyer</div>
+            <div class="btn-action" data-i18n="receive">🔸 Recevoir</div>
+            <div class="btn-action" data-i18n="stake">🔒 Staker</div>
+          </div>
+        </div>
+      </div>
 
-            <!-- Vue Marchand -->
-            <div id="sellerTab" class="tab-content hidden">
-                <h3 class="lang-title" data-fr="Gestion Marchande" data-en="Merchant Management" data-mg="Fitantanana ny Tsena">Gestion Marchande</h3>
-                <div id="noShopView" class="card text-center">
-                    <p class="lang-text" data-fr="Vous ne possédez pas encore de boutique sur Me Tsena." data-en="You do not own a shop on Me Tsena yet." data-mg="Mbola tsy manana tsena ianao ato amin'ny Me Tsena.">Vous ne possédez pas encore de boutique sur Me Tsena.</p>
-                    <button class="btn-primary" onclick="mintShop()" class="lang-text" data-fr="Mint ma boutique ERC-721" data-en="Mint my ERC-721 Shop" data-mg="Hoforoniko ny Tsenako (Mint)">Mint ma boutique ERC-721</button>
-                </div>
-                <div id="shopActiveView" class="hidden">
-                    <p class="success-text">🏪 Boutique Contract: <span id="shopContractAddress"></span></p>
-                    <!-- Formulaire d'ajout de produit -->
-                </div>
-            </div>
-        </section>
+      <button class="btn-main" onclick="switchScreen('screen-mall')" data-i18n="enter_mall">Entrer dans le centre commercial ↗</button>
     </main>
 
-    <script src="app.js"></script>
+    <main id="screen-mall" class="screen">
+      <h3 data-i18n="mall_title">Boutiques disponibles</h3>
+      
+      <input type="text" id="search-bar" placeholder="Rechercher une boutique..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e5e7eb; box-sizing: border-box;">
+
+      <div class="market-grid">
+        <div class="shop-card">
+          <div class="shop-icon-placeholder">👕</div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong>Lamba Malagasy</strong>
+            <span class="badge-kyc">KYC ✓</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-gray);">Mode • Antananarivo</div>
+          <div style="font-size: 12px; margin-top: 5px;">⭐ 4.8</div>
+        </div>
+
+        <div class="shop-card">
+          <div class="shop-icon-placeholder">💻</div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong>TechHub MG</strong>
+            <span class="badge-kyc">KYC ✓</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-gray);">Électronique • En ligne</div>
+          <div style="font-size: 12px; margin-top: 5px;">⭐ 4.6</div>
+        </div>
+
+        <div class="shop-card">
+          <div class="shop-icon-placeholder">🍯</div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong>Zava-maniry Bio</strong>
+            <span class="badge-kyc" style="background:#ffedd5; color:#c2410c;">KYC en cours</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-gray);">Alimentation • Fianarantsoa</div>
+          <div style="font-size: 12px; margin-top: 5px;">⭐ 4.9</div>
+        </div>
+      </div>
+
+      <button class="btn-main" style="background: #059669;" data-i18n="open_shop">ouvrir ma boutique ↗</button>
+    </main>
+
+    <nav class="nav-tabs">
+      <div class="nav-item active" onclick="switchScreen('screen-mepass')" id="nav-mepass">ME Pass</div>
+      <div class="nav-item" onclick="switchScreen('screen-mall')" id="nav-mall">Me Tsena</div>
+    </nav>
+
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
