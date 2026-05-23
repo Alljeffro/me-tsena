@@ -1,91 +1,179 @@
 :root {
-    --bg-dark: #12141c;
-    --card-bg: #1e2230;
-    --primary: #4f46e5;
-    --primary-hover: #4338ca;
-    --text-main: #f3f4f6;
-    --text-muted: #9ca3af;
-    --success: #10b981;
+  --primary: #6366f1;
+  --bg-main: #fcfcf9;
+  --card-bg: #ffffff;
+  --text-dark: #1f2937;
+  --text-gray: #6b7280;
+  
+  /* Couleurs thématiques des phases de la maquette */
+  --phase-purple: #eedffd;
+  --phase-green: #e1f5fe;
+  --phase-orange: #fef3c7;
+  --phase-red: #fee2e2;
+  --phase-blue: #e0f2fe;
 }
 
 body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background-color: var(--bg-dark);
-    color: var(--text-main);
-    padding: 15px;
+  font-family: 'Arial', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-dark);
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+}
+
+.app-container {
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  min-height: 100vh;
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
 }
 
 header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #2d3142;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-.logo {
-    font-size: 1.4rem;
-    font-weight: bold;
+.btn-lang {
+  background: #eee;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
 }
 
-select, button {
-    background: var(--card-bg);
-    color: var(--text-main);
-    border: 1px solid #374151;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    cursor: pointer;
+.screen {
+  display: none;
+  padding: 20px;
+  flex-direction: column;
 }
 
-button.btn-primary, #connectBtn {
-    background: var(--primary);
-    border: none;
-    font-weight: 600;
+.screen.active {
+  display: flex;
 }
 
-button.btn-primary:hover, #connectBtn:hover {
-    background: var(--primary-hover);
+/* Style de la Carte d'identité ME Pass */
+.mepass-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 15px;
 }
 
-.card {
-    background: var(--card-bg);
-    padding: 20px;
-    border-radius: 12px;
-    margin-top: 20px;
-    border: 1px solid #2d3142;
+.mepass-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
 }
 
-.badge {
-    background: rgba(16, 185, 129, 0.2);
-    color: var(--success);
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 0.8rem;
+.user-avatar {
+  width: 45px;
+  height: 45px;
+  background: var(--phase-blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #0369a1;
 }
 
-.hidden { display: none !important; }
-.text-center { text-align: center; }
-
-.tabs {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
+.badge-kyc {
+  background: #dcfce7;
+  color: #15803d;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
 }
 
-.tab-btn {
-    flex: 1;
-    text-align: center;
+/* Wallet section */
+.wallet-box {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 15px;
 }
 
-.tab-btn.active {
-    background: var(--primary);
+.wallet-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 15px;
 }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 15px;
-    margin-top: 15px;
+.btn-action {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 10px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Grille des Boutiques */
+.market-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.shop-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.shop-icon-placeholder {
+  height: 80px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.btn-main {
+  background: var(--text-dark);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 15px;
+}
+
+.nav-tabs {
+  margin-top: auto;
+  display: flex;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.nav-item {
+  flex: 1;
+  text-align: center;
+  padding: 15px 0;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--text-gray);
+}
+
+.nav-item.active {
+  color: var(--primary);
+  border-top: 2px solid var(--primary);
 }
