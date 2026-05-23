@@ -17,7 +17,7 @@ const translations = {
 // 1. Gestion de l'identité & Accès via ME Pass (Meta Earth Auth Simulation)
 async function connectMEPass() {
     if (!window.ethereum) {
-        alert("Veuillez utiliser le navigateur de votre ME Wallet ou MetaMask sur Android.");
+        window.location.href = "metasearth://mepass?action=connect&callback=https://me-tsena.vercel.app";
         return;
     }
     try {
