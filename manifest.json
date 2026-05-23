@@ -1,7 +1,6 @@
 {
-  "short_name": "MeTsena",
+  "short_name": "Me Tsena",
   "name": "Me Tsena - Centre Commercial Décentralisé",
-  "description": "Ilay tsenanao Web3 - Mall décentralisé sur Meta Earth",
   "icons": [
     {
       "src": "icon-192.png",
@@ -15,8 +14,8 @@
     }
   ],
   "start_url": "/",
-  "background_color": "#12141c",
-  "theme_color": "#4f46e5",
+  "background_color": "#f8f9fa",
+  "theme_color": "#6366f1",
   "display": "standalone",
   "orientation": "portrait"
 }
