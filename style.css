@@ -1,395 +1,91 @@
-/* ==========================================================================
-   VARIABLES ET CONFIGURATION GLOBALE
-   ========================================================================== */
 :root {
-    --primary: #1D9E75;
-    --primary-light: #e8f5f1;
-    --dark: #1a202c;
-    --light: #f7fafc;
-    --grey: #edf2f7;
-    --grey-dark: #718096;
-    --success: #38a169;
-    --border-radius: 12px;
-    --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    -webkit-tap-highlight-color: transparent;
+    --bg-dark: #12141c;
+    --card-bg: #1e2230;
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+    --success: #10b981;
 }
 
 body {
-    font-family: var(--font-stack);
-    background-color: #f0f2f5;
-    color: var(--dark);
-    line-height: 1.5;
-    display: flex;
-    justify-content: center;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    padding: 15px;
 }
 
-/* Conteneur type Smartphone (Max 480px) */
-.app-container {
-    width: 100%;
-    max-width: 480px;
-    min-height: 100vh;
-    background-color: var(--light);
+header {
     display: flex;
-    flex-direction: column;
-    position: relative;
-    box-shadow: 0 0 20px rgba(0,0,0,0.05);
-}
-
-/* ==========================================================================
-   BARRE SUPÉRIEURE (HEADER)
-   ========================================================================== */
-.app-header {
-    background-color: var(--light);
-    height: 60px;
-    padding: 0 16px;
-    display: flex;
-    align-items: center;
     justify-content: space-between;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    max-width: 480px;
-    z-index: 100;
-    border-bottom: 1px solid var(--grey);
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #2d3142;
 }
 
-.app-header h1 {
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: var(--primary);
+.logo {
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+select, button {
+    background: var(--card-bg);
+    color: var(--text-main);
+    border: 1px solid #374151;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
     cursor: pointer;
-    letter-spacing: -0.5px;
 }
 
-/* Bouton Connexion Wallet */
-.wallet-btn {
-    background-color: var(--grey);
+button.btn-primary, #connectBtn {
+    background: var(--primary);
     border: none;
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 0.8rem;
     font-weight: 600;
-    color: var(--dark);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
 }
 
-.wallet-btn .dot {
-    width: 8px;
-    height: 8px;
-    background-color: var(--grey-dark);
-    border-radius: 50%;
+button.btn-primary:hover, #connectBtn:hover {
+    background: var(--primary-hover);
 }
 
-.wallet-btn.connected {
-    background-color: var(--primary-light);
-    color: var(--primary);
+.card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    border: 1px solid #2d3142;
 }
 
-.wallet-btn.connected .dot {
-    background-color: var(--primary);
+.badge {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
 }
 
-/* ==========================================================================
-   ZONE DE CONTENU PRINCIPAL
-   ========================================================================== */
-.app-main {
-    flex: 1;
-    margin-top: 60px;
-    margin-bottom: 70px;
-    padding: 16px;
-    overflow-y: auto;
-}
-
-.page {
-    animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Éléments de cartes réutilisables */
-.carte {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    border: 1px solid var(--grey);
-}
-
-.centraliser {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
+.hidden { display: none !important; }
 .text-center { text-align: center; }
 
-h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 12px;
-}
-
-h3 {
-    font-size: 1.05rem;
-    font-weight: 700;
-    margin-bottom: 8px;
-}
-
-p {
-    font-size: 0.9rem;
-    color: var(--grey-dark);
-    margin-bottom: 12px;
-}
-
-/* ==========================================================================
-   CATALOGUE ET GRILLE DE PRODUITS (MODE HOMME)
-   ========================================================================== */
-.search-bar {
-    width: 100%;
-    padding: 12px 16px;
-    border-radius: var(--border-radius);
-    border: 1px solid var(--grey);
-    background-color: white;
-    font-size: 0.9rem;
-    margin-bottom: 16px;
-    outline: none;
-}
-
-.search-bar:focus {
-    border-color: var(--primary);
-}
-
-.grille-produits {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-}
-
-.produit-card {
-    background: white;
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    border: 1px solid var(--grey);
+.tabs {
     display: flex;
-    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
 }
 
-.produit-img {
-    width: 100%;
-    height: 140px;
-    object-fit: cover;
-    background-color: var(--grey);
-}
-
-.produit-info {
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    flex-1: 1;
-}
-
-.produit-nom {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--dark);
-    margin: 2px 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.produit-prix {
-    font-size: 1rem;
-    font-weight: 800;
-    color: var(--primary);
-    margin-bottom: 8px;
-}
-
-.produit-btn {
-    background-color: var(--dark);
-    color: white;
-    border: none;
-    padding: 8px;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    width: 100%;
-}
-
-/* ==========================================================================
-   FORMULAIRES ET BOUTONS
-   ========================================================================== */
-.form-group {
-    margin-bottom: 12px;
-    text-align: left;
-    width: 100%;
-}
-
-.form-group label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: var(--dark);
-}
-
-.form-group input, .form-group textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid var(--grey);
-    border-radius: 8px;
-    background-color: var(--light);
-    font-size: 0.9rem;
-    outline: none;
-}
-
-.form-group input:focus, .form-group textarea:focus {
-    border-color: var(--primary);
-    background-color: white;
-}
-
-.btn-block {
-    background-color: var(--primary);
-    color: white;
-    border: none;
-    width: 100%;
-    padding: 12px;
-    border-radius: var(--border-radius);
-    font-size: 0.9rem;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 4px;
-}
-
-.btn-block:disabled {
-    background-color: var(--grey-dark);
-    opacity: 0.6;
-}
-
-.badge-verified {
-    background-color: #ebf8f2;
-    color: var(--success);
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 4px 8px;
-    border-radius: 4px;
-    display: inline-block;
-}
-
-/* ==========================================================================
-   BARRE DE NAVIGATION BASSE (NAVIGATION)
-   ========================================================================== */
-.bottom-nav {
-    background-color: white;
-    height: 65px;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    max-width: 480px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    border-top: 1px solid var(--grey);
-    z-index: 100;
-    padding-bottom: env(safe-area-inset-bottom);
-}
-
-.nav-item {
-    background: none;
-    border: none;
+.tab-btn {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: var(--grey-dark);
-    cursor: pointer;
-    height: 100%;
+    text-align: center;
 }
 
-.nav-icon {
-    font-size: 1.2rem;
-    margin-bottom: 2px;
+.tab-btn.active {
+    background: var(--primary);
 }
 
-.nav-text {
-    font-size: 0.7rem;
-    font-weight: 500;
-}
-
-.nav-item.active {
-    color: var(--primary);
-}
-
-/* ==========================================================================
-   FENÊTRE MODALE (POPUP QR CODE & FACTURES)
-   ========================================================================== */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background-color: white;
-    width: 90%;
-    max-width: 400px;
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    animation: popUp 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes popUp {
-    from { transform: scale(0.85); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
-
-.modal-header {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--grey);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h3 { margin: 0; font-size: 1rem; }
-
-.modal-close-btn {
-    background: none;
-    border: none;
-    font-size: 1.1rem;
-    color: var(--grey-dark);
-    cursor: pointer;
-}
-
-.modal-body {
-    padding: 16px;
-}
-
-.hidden {
-    display: none !important;
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
 }
