@@ -18,7 +18,7 @@ const translations = {
 async function connectMEPass() {
     if (!window.ethereum) {
         // Ouvre l'application native ME Pass en tâche de fond
-        window.location.href = "metasearth://mepass?action=connect&callback=https://me-tsena.vercel.app";
+        window.location.href = "https://mepass.meta-earth.io/connect?callback=" + encodeURIComponent(window.location.href);
         
         // Force le chargement de l'interface Me Tsena dans Chrome
         document.getElementById("userId").innerText = "ME-ID-Mobile-User";
